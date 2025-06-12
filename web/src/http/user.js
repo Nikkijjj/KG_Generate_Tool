@@ -74,7 +74,17 @@ const allApi = {
             },
             {
                 name: 'project-manage',
-                title: '项目空间',
+                title: '项目管理空间',
+                iconName: 'svg:laptop-check.svg',
+            },
+            {
+                name: 'data-library',
+                title: '数据仓库',
+                iconName: 'svg:laptop-check.svg',
+            },
+            {
+                name: 'abstract_kg',
+                title: '知识图谱抽取中心',
                 iconName: 'svg:laptop-check.svg',
             },
             {
@@ -108,11 +118,18 @@ const allApi = {
         });
     },
 
-    getProjectList(params){
+    loadOperationData(params){
         return service({
-            // url: '/getPagedProject',
-            // method: 'post',
-            // data: params,
+            url: '/textPreprocess_api',
+            method: 'post',
+            data: params
+        });
+    },
+    loadExtractText(params){
+         return service({
+            url: '/extractionProcess/getAllTextData',
+            method: 'post',
+            data: params,
         });
     },
 };
