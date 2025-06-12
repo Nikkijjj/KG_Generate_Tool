@@ -72,7 +72,12 @@ const allApi = {
                 isCache: true,
                 hidden: true,
             },
-                        {
+            {
+                name: 'project-manage',
+                title: '项目空间',
+                iconName: 'svg:laptop-check.svg',
+            },
+            {
                 name: 'upload-files',
                 title: '上传数据',
                 iconName: 'svg:laptop-check.svg',
@@ -100,6 +105,14 @@ const allApi = {
             msg: '操作成功',
             code: 200,
             data: menuList,
+        });
+    },
+
+    getProjectList(params){
+        return service({
+            // url: '/getPagedProject',
+            // method: 'post',
+            // data: params,
         });
     },
 };

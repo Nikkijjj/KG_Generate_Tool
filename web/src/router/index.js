@@ -255,6 +255,17 @@ export const constantRoutes = [
                     hasTag: true,
                 },
             },
+
+            {
+                path: 'project-manage',
+                component: () => import('@/views/exampleViews/ProjectManage/index.vue'),
+                name: 'project-manage',
+                meta: {
+                    layoutName: 'main',
+                    redirectName: 'main-redirect',
+                    hasTag: true,
+                },
+            },
             
             {
                 path: 'upload-files',
