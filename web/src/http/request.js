@@ -14,6 +14,7 @@ export const service = axios.create({
     //可创建多个 axios实例
     baseURL: baseApiURL, //设置公共的请求前缀
     timeout: timeout, //超时终止请求
+    withCredentials: true 
 });
 
 service.interceptors.request.use(
