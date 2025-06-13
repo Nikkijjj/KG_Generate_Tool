@@ -115,6 +115,13 @@ const allApi = {
             // data: params,
         });
     },
+    getAIResponse(params){
+        return service({
+            url: '/askAI',
+            method: 'post',
+            data: params,
+        });
+    },
 };
 
 export default allApi;
