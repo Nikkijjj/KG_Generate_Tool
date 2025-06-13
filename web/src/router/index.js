@@ -288,11 +288,30 @@ export const constantRoutes = [
                     hasTag: true,
                 },
             },
-
             {
                 path: 'ask-ai',
                 component: () => import('@/views/exampleViews/askAi/index.vue'),
                 name: 'ask-ai',
+                meta: {
+                    layoutName: 'main',
+                    redirectName: 'main-redirect',
+                    hasTag: true,
+                },
+            },
+            {
+                path: 'data-library',
+                component: () => import('@/views/exampleViews/dataLibrary/index.vue'),
+                name: 'data-library',
+                meta: {
+                    layoutName: 'main',
+                    redirectName: 'main-redirect',
+                    hasTag: true,
+                },
+            },
+            {
+                path: 'abstract_kg',
+                component: () => import('@/views/exampleViews/abstractKG/index.vue'),
+                name: 'abstract_kg',
                 meta: {
                     layoutName: 'main',
                     redirectName: 'main-redirect',
