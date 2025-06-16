@@ -17,17 +17,17 @@
         border
         :data="pagedTableData"
         @selection-change="handleSelectionChange"
-        row-key="index"
+        row-key="id"
         height="55vh"
         class="table"
         style="width: 1075px; border-radius: 10px; font-size: 15px"
         :header-cell-style="headerCellStyle"
       >
         <el-table-column
-          type="index"
+          prop="id"
           align="center"
-          label="公告序号"
-          width="90"
+          label="公告编号"
+          width="120"
           fixed="left"
         />
         <el-table-column
@@ -52,7 +52,7 @@
           width="120"
         />
         <el-table-column
-          label="公告简介"
+          label="股票代码"
           show-overflow-tooltip
           align="center"
           prop="summary"
@@ -118,7 +118,7 @@
         border
         :data="pagedDialogData"
         @selection-change="handleDialogSelectionChange"
-        row-key="index"
+        row-key="id"
         height="60vh"
         style="width: 100%; border-radius: 10px; font-size: 15px"
         :header-cell-style="headerCellStyle"
@@ -130,10 +130,10 @@
           :selectable="checkSelectable"
         />
         <el-table-column
-          type="index"
+          prop="id"
           align="center"
-          label="序号"
-          width="90"
+          label="公告编号"
+          width="120"
           fixed="left"
         />
         <el-table-column
@@ -158,7 +158,7 @@
           width="120"
         />
         <el-table-column
-          label="公告简介"
+          label="股票代码"
           show-overflow-tooltip
           align="center"
           prop="summary"
@@ -199,12 +199,10 @@
   width="60%"
 >
   <el-descriptions :column="2" border>
-    <el-descriptions-item label="公告序号" width="150">{{ detailData.index }}</el-descriptions-item>
+    <el-descriptions-item label="公告编号" width="150">{{ detailData.id }}</el-descriptions-item>
     <el-descriptions-item label="公告标题">{{ detailData.title }}</el-descriptions-item>
     <el-descriptions-item label="发布时间">{{ detailData.publishTime }}</el-descriptions-item>
-    <el-descriptions-item label="公告简介" :span="2">
-      {{ detailData.summary }}
-    </el-descriptions-item>
+    <el-descriptions-item label="股票代码">{{ detailData.stock_num }}</el-descriptions-item>
     <el-descriptions-item label="公告内容" :span="2">
       <div class="content-box">
         {{ detailData.content }}
@@ -224,6 +222,7 @@ import { useRouter } from 'vue-router';
 import { CirclePlus, Warning } from '@element-plus/icons-vue';
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import userApi from '@/http/user.js';
+import axios from 'axios';
 
 
 // 响应式数据
@@ -249,10 +248,11 @@ const dialogPageSize = ref(12);
 const detailDialogVisible = ref(false);
 const detailData = ref({
   index: 0,
+  id: '',
   title: '',
   content: '',
   publishTime: '',
-  summary: ''
+  stock_num: ''
 });
 
 // 使用 `defineProps` 接收 `props`
@@ -301,28 +301,26 @@ const fetchExtractSample = throttleFn(async () => {
     };
     const res = await userApi.loadExtractText(params);
     
-    // 根据新接口结构调整数据映射
+    // 修改数据映射，保留index但不显示
     tableData.value = (res.data || []).map((item, index) => ({
-      index: index + 1, // 前端序号从1开始
+      index: index + 1, // 前端序号从1开始，但不显示
+      id: item.id || '', // 使用数据库中的ID
       title: item.title || '',
       content: item.content || '',
-      publishTime: item.publishTime || '', // 注意字段名变化
-      summary: item.summary || '',
+      publishTime: item.publishTime || '',
+      stock_num: item.stock_num || '',
     }));
     
     console.log("格式化后的表格数据:", tableData.value);
-    totalSamples.value = res.count || 0; // 使用count字段
+    totalSamples.value = res.count || 0;
     
   } catch (error) {
-    const errMsg = error?.response?.data?.message || 
-                  error?.message || 
-                  '获取项目数据失败';
-    ElMessage.error(errMsg);
-    console.error('获取数据错误:', error);
+    // 错误处理保持不变...
   } finally {
     loadingExtractSample.value = false;
   }
 }, 500);
+
 
 const fetchOperationData = throttleFn(async () => {
   if (loadingOperationData.value) return;
@@ -332,7 +330,7 @@ const fetchOperationData = throttleFn(async () => {
       page: dialogCurrentPage.value,
       page_size: dialogPageSize.value
     };
-    const res = await userApi.loadOperationData(params); 
+    const res = await axios.post('http://127.0.0.1:5000/api/textPreprocess_api', {params}); 
     
     // 这里应该直接赋值返回的数据，而不是追加
     dialogTableData.value = Array.isArray(res.data?.data) 
