@@ -31,15 +31,6 @@
                   <el-button type="danger" @click="handleDelete">删除</el-button>
               </div>
           </div>
-          <!-- <el-table
-              ref="multipleTable"
-              border
-              :data="tableData"
-              @selection-change="handleSelectionChange"
-              row-key="index"
-              :header-cell-style="headerCellStyle"
-              style="height: 450px;"
-          > -->
           <el-table
             ref="multipleTable"
             border
@@ -87,13 +78,6 @@
                   width="200"
               />
               <el-table-column
-                  label="发布公司"
-                  show-overflow-tooltip
-                  align="center"
-                  prop="company"
-                  width="200"
-              />
-              <el-table-column
                   label="操作"
                   width="130"
                   fixed="right"
@@ -121,13 +105,20 @@
               </el-table-column>
           </el-table>
 
-      <!--分页-->
-      <div class="pagination-block">
-        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[12, 24, 36, 48]"
-          layout="total, sizes, prev, pager, next, jumper" :total="totalSamples" @size-change="handleSizeChange"
-          @current-change="handleCurrentChange" class="pagination-container" />
+          <!--分页-->
+        <div class="pagination-block">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[12, 24, 36, 48]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalSamples"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            class="pagination-container"
+          />
+        </div>
       </div>
-    </div>
     <!-- 对话框 -->
 <el-dialog v-model="addNewDialogVisible" title="新建公告">
   <el-form 
@@ -170,12 +161,6 @@
       <el-input
         v-model="newNotice.stock_num"
         placeholder="请输入发布该公告公司的股票代码"
-      />
-    </el-form-item>
-        <el-form-item label="发布公司">
-      <el-input
-        v-model="newNotice.company"
-        placeholder="请输入发布该公告的公司名称"
       />
     </el-form-item>
   </el-form>
@@ -244,14 +229,64 @@
     <el-descriptions-item label="公告编号" width="150">{{ detailData.id }}</el-descriptions-item>
     <el-descriptions-item label="公告标题">{{ detailData.title }}</el-descriptions-item>
     <el-descriptions-item label="股票代码">{{ detailData.stock_num }}</el-descriptions-item>
-    <el-descriptions-item label="发布公司">{{ detailData.company }}</el-descriptions-item>
+    <el-descriptions-item label="发布时间">{{ detailData.date }}</el-descriptions-item>
     <el-descriptions-item label="公告内容" :span="2">
       <div class="content-box">
         {{ detailData.content }}
       </div>
     </el-descriptions-item>
-    <el-descriptions-item label="发布时间">{{ detailData.date }}</el-descriptions-item>
   </el-descriptions>
+</el-dialog>
+
+<el-dialog v-model="updateDialogVisible" title="修改公告">
+  <el-form 
+    :model="updateNotice" 
+    ref="updateForm"
+    :rules="formRules"
+    label-width="100px"
+  >
+    <el-form-item label="公告编号" prop="id">
+      <el-input 
+        v-model="updateNotice.id" 
+        placeholder="请输入公告编号"
+        disabled
+      />
+    </el-form-item>
+    <el-form-item label="公告标题" prop="title">
+      <el-input 
+        v-model="updateNotice.title" 
+        placeholder="请输入公告标题"
+        clearable
+      />
+    </el-form-item>
+    <el-form-item label="公告内容" prop="content">
+      <el-input 
+        type="textarea" 
+        v-model="updateNotice.content" 
+        placeholder="请输入公告内容"
+        :rows="4"
+      />
+    </el-form-item>
+    <el-form-item label="发布时间">
+      <el-date-picker
+        v-model="updateNotice.date"
+        type="date"
+        placeholder="选择发布时间"
+        value-format="YYYY-MM-DD"
+      />
+    </el-form-item>
+    <el-form-item label="股票代码">
+      <el-input
+        v-model="updateNotice.stock_num"
+        placeholder="请输入发布该公告公司的股票代码"
+      />
+    </el-form-item>
+  </el-form>
+  
+  <template #footer>
+    <el-button @click="updateDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="handleUpdateNotice">确 定</el-button>
+  </template>
 </el-dialog>
 
   </div>
@@ -259,7 +294,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ElMessageBox, ElMessage }from 'element-plus';
 
 import * as XLSX from 'xlsx';
 import { UploadFilled, Search } from '@element-plus/icons-vue';
@@ -280,8 +315,16 @@ id:'',
 title: '',
 content: '',
 date: '',
-stock_num: '',
-company: ''
+stock_num: ''
+});
+
+const updateDialogVisible = ref(false);
+const updateNotice = ref({
+  id: '',
+  title: '',
+  content: '',
+  date: '',
+  stock_num: ''
 });
 const importDialogVisible = ref(false);
 const allowedFileTypes = '.txt,.csv';
@@ -292,64 +335,24 @@ const uploadForm = ref({
   encoding: 'utf-8'
 });
 
-const mockData = ref([
-  {
-    id: "11111111",
-    title: '2023年度报告',
-    content: '本公司2023年度财务报告及审计结果',
-    publishTime: '2023-04-15',
-    summary: '600000',
-    detailUrl: '#'
-  },
-  {
-    id: "22222222",
-    title: '董事会决议公告',
-    content: '关于公司董事会第五次会议决议的公告',
-    publishTime: '2023-05-20',
-    summary: '000001',
-    detailUrl: '#'
-  },
-  {
-    id: "33333333",
-    title: '重大资产重组公告',
-    content: '关于公司拟进行重大资产重组的提示性公告',
-    publishTime: '2023-06-10',
-    summary: '600519',
-    detailUrl: '#'
-  },
-  {
-    id: "44444444",
-    title: '分红方案公告',
-    content: '2022年度利润分配方案公告',
-    publishTime: '2023-07-05',
-    summary: '000002',
-    detailUrl: '#'
-  },
-  {
-    id: "55555555",
-    title: '季度报告',
-    content: '2023年第三季度财务报告',
-    publishTime: '2023-10-15',
-    summary: '600000',
-    detailUrl: '#'
-  },
-]);
-
 const tableData = ref<any[]>([]);
 const filteredData = ref<any[]>([]);
 
+const addNewDialogVisible = ref(false);
+
 const loadingSearch = ref(false);
 
+//根据股票代码搜索公告
 const handleSearch = () => {
   if (!searchKeyword.value.trim()) {
     fetchOperationData(); // 重新获取全部数据
     return;
   }
-
+  
   const keyword = searchKeyword.value.trim();
   loadingSearch.value = true;
   
-  axios.post('http://127.0.0.1:5000/api/textPreprocess_api/search', {
+  axios.post('http://127.0.0.1:5000/textPreprocess_api/search', {
     keyword: keyword,
     page: currentPage.value,
     page_size: pageSize.value
@@ -364,20 +367,11 @@ const handleSearch = () => {
 };
 
 
-// // 过滤和分页计算属性
-// const filteredData = computed(() => {
-// if (!searchKeyword.value) return tableData.value;
-// const keyword = searchKeyword.value.toLowerCase();
-// return tableData.value.filter(item => 
-//   item.title.toLowerCase().includes(keyword)
-// );
-// });
-
+// 表单验证
 const formRules = {
-  title: [{ required: true, message: '标题不能为空', trigger: 'blur' }],
-  content: [{ required: true, message: '内容不能为空', trigger: 'blur' }]
+title: [{ required: true, message: '标题不能为空', trigger: 'blur' }],
+content: [{ required: true, message: '内容不能为空', trigger: 'blur' }]
 };
-
 
 
 const newNotice = ref({
@@ -385,15 +379,9 @@ id: '',
 title: '',
 content: '',
 date: '', 
-stock_num: '',
-company: ''
+stock_num: ''
 });
 
-// const pagedData = computed(() => {
-// const start = (currentPage.value - 1) * pageSize.value;
-// return filteredData.value.slice(start, start + pageSize.value);
-// });
-const addNewDialogVisible = ref(false);
 
 // 行选择变更时的处理函数
 const handleSelectionChange = (selection: any[]) => {
@@ -401,29 +389,28 @@ const handleSelectionChange = (selection: any[]) => {
   console.log('选中的行:', selectedRows.value);
 };
 
-// // 分页改变时的处理函数
-// const handlePageChange = (page: number) => {
-//   ElMessage.success(`当前第${page}页`);
-//   currentPage.value = page;
-// };
 
+//分页size变化时的处理函数
 const handleSizeChange = (size) => {
   pageSize.value = size;
   currentPage.value = 1;
   fetchOperationData();
 };
 
+
+//分页页码变化时的处理函数
 const handleCurrentChange = (page) => {
   currentPage.value = page;
   fetchOperationData();
 };
 
-// 从后端获取数据
+
+// 从后端获取全部公告数据
 const fetchOperationData = throttleFn(async () => {
   try {
     const response = await axios({
       method: 'post',
-      url: 'http://127.0.0.1:5000/api/textPreprocess_api',
+      url: 'http://127.0.0.1:5000/textPreprocess_api',
       data: {
         page: currentPage.value,
         page_size: pageSize.value
@@ -445,43 +432,7 @@ const fetchOperationData = throttleFn(async () => {
   }
 }, 500);
 
-// const fetchOperationData = throttleFn(async () => {
-//     if (loadingOperationData.value) return;
-//     loadingOperationData.value = true;
-    
-//     try {
-//       // Comment out the actual API call for now
-//       /*
-//       const res = await axios.get('http://127.0.0.1:5000/api/textPreprocess_api', {
-//         params: {
-//           page: currentPage.value,
-//           page_size: pageSize.value
-//         }
-//       });
-
-//       if (res.data.error) {
-//         throw new Error(res.data.msg || '获取数据失败');
-//       }
-
-//       tableData.value = res.data.data || [];
-//       totalSamples.value = res.data.total || 0;
-//       */
-      
-//       // Use mock data instead
-//       tableData.value = mockData.value;
-//       filteredData.value = [...mockData.value];
-//       totalSamples.value = mockData.value.length;
-      
-//     } catch (error) {
-//       ElMessage.error(error.message);
-//       console.error('Error:', error);
-//     } finally {
-//       loadingOperationData.value = false;
-//     }
-// }, 500);
-
 onMounted(fetchOperationData);
-
 //查看详情
 const handleDetails = (row: any) => {
 detailData.value = {
@@ -489,12 +440,13 @@ detailData.value = {
   title: row.title,
   content: row.content,
   date: row.date,
-  stock_num: row.stock_num,
-  company: row.company
+  stock_num: row.stock_num
 };
 detailDialogVisible.value = true;
 };
 
+
+//删除公告
 const handleDelete = async () => {
   if (selectedRows.value.length === 0) {
     ElMessage.warning('请先选择要删除的数据');
@@ -512,14 +464,11 @@ const handleDelete = async () => {
       }
     );
 
-    // 提取要删除的公告ID数组
     const idsToDelete = selectedRows.value.map(row => row.id);
-    console.log('要删除的ID:', idsToDelete); // 调试日志
     
-    // 调用后端API删除数据
     const response = await axios.post(
-      'http://127.0.0.1:5000/api/textPreprocess_api/deleteAnnouncements', 
-      { ids: idsToDelete },  // 修正数据格式
+      'http://127.0.0.1:5000/textPreprocess_api/deleteAnnouncements', 
+      { ids: idsToDelete },
       {
         headers: {
           'Content-Type': 'application/json'
@@ -527,15 +476,20 @@ const handleDelete = async () => {
       }
     );
 
-    console.log('删除响应:', response.data); // 调试日志
-
-    if (response.data.success) {
-      ElMessage.success('删除成功');
+      if (response.data.success) {
+    console.log('后端返回:', response.data);
+    if (response.data.deleted_count > 0) {
+      // 强制等待1秒确保后台合并完成（临时解决方案）
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await fetchOperationData();  // 重新获取数据
       tableData.value = tableData.value.filter(
         item => !idsToDelete.includes(item.id)
       );
       selectedRows.value = [];
-      fetchOperationData();
+      ElMessage.success('删除成功');
+    } else {
+      ElMessage.warning('可能数据已被其他操作删除或不存在');
+    }
     } else {
       throw new Error(response.data.message || '删除失败');
     }
@@ -547,36 +501,31 @@ const handleDelete = async () => {
   }
 };
 
+
 // 下载表格内容的方法
 const handleDownload = () => {
   ElMessageBox.confirm('是否确定要下载当前表格内容为Excel文件？', '下载确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
   })
-    .then(() => {
-      // 用户点击确定，执行下载操作
-      const data = tableData.value; // 获取表格数据
-      const worksheet = XLSX.utils.json_to_sheet(data); // 将数据转换为工作表
-      const workbook = XLSX.utils.book_new(); // 创建一个新的工作簿
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1'); // 将工作表添加到工作簿
-      XLSX.writeFile(workbook, 'tableData.xlsx'); // 保存工作簿为Excel文件
-      ElMessage.success('下载成功');
-    })
-    .catch(() => {
-      // 用户点击取消，取消操作
-      ElMessage.info('下载已取消');
-    });
+      .then(() => {
+          // 用户点击确定，执行下载操作
+          const data = tableData.value; // 获取表格数据
+          const worksheet = XLSX.utils.json_to_sheet(data); // 将数据转换为工作表
+          const workbook = XLSX.utils.book_new(); // 创建一个新的工作簿
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1'); // 将工作表添加到工作簿
+          XLSX.writeFile(workbook, 'tableData.xlsx'); // 保存工作簿为Excel文件
+          ElMessage.success('下载成功');
+      })
+      .catch(() => {
+          // 用户点击取消，取消操作
+          ElMessage.info('下载已取消');
+      });
 };
 
 
-// 在script中添加响应式数据和相关方法
-const filterForm = ref({
-  dateRange: [],
-  stockCodes: '',
-});
-const uploadFile = ref<File>();
-
+// 导入公告数据文件
 const handleFileChange = (file: UploadFile) => {
   uploadForm.value.file = file.raw;
   // 检测文件类型
@@ -589,6 +538,8 @@ const handleFileChange = (file: UploadFile) => {
   return false; // 阻止默认行为
 };
 
+
+// 文件上传前的预处理
 const beforeUpload = (file: File) => {
   const isAllowed = file.name.endsWith('.txt') || file.name.endsWith('.csv');
   const isLt10M = file.size / 1024 / 1024 < 10;
@@ -604,6 +555,8 @@ const beforeUpload = (file: File) => {
   return true;
 };
 
+
+// 文件上传处理函数
 const handleFileUpload = async () => {
   if (!uploadForm.value.file) {
     ElMessage.warning('请先选择文件');
@@ -653,6 +606,7 @@ const handleFileUpload = async () => {
   }
 };
 
+
 // 辅助函数用于读取文件内容
 const readFileContent = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -667,6 +621,7 @@ const readFileContent = (file: File): Promise<string> => {
   });
 };
 
+
 // 辅助函数用于解析文件内容
 const parseFileContent = (content: string): any[] => {
   if (uploadForm.value.fileType === 'csv') {
@@ -675,6 +630,7 @@ const parseFileContent = (content: string): any[] => {
     return parseTXT(content);
   }
 };
+
 
 // 辅助函数用于解析CSV内容
 const parseCSV = (content: string): any[] => {
@@ -702,6 +658,7 @@ const parseCSV = (content: string): any[] => {
   return result;
 };
 
+
 // 辅助函数用于解析TXT内容
 const parseTXT = (content: string): any[] => {
   // Split into entries (if there are multiple announcements in one file)
@@ -714,8 +671,7 @@ const parseTXT = (content: string): any[] => {
       title: '无标题公告',
       content: '',
       date: new Date().toISOString().split('T')[0],
-      stock_num: '未知股票代码',
-      company: '未知公司名称'
+      stock_num: '未知股票代码'
     };
 
     // Split the entry into lines and process each line
@@ -731,9 +687,7 @@ const parseTXT = (content: string): any[] => {
         result.date = line.replace('发布时间：', '').trim();
       } else if (line.startsWith('股票代码：')) {
         result.stock_num = line.replace('股票代码：', '').trim();
-      } else if (line.startsWith('发布公司')) {
-        result.company = line.replace('发布公司', '').trim();
-      }
+      } 
       // Handle multi-line content (if content spans multiple lines)
       else if (result.content && !line.includes('：')) {
         result.content += '\n' + line.trim();
@@ -758,13 +712,15 @@ try {
 // 表头单元格样式
 const headerCellStyle = (column: any) => {
   return {
-    fontWeight: 'bold', // 设置字体加粗
-    fontSize: '15px', // 设置字体大小
-    textAlign: 'center', // 设置文本居中
-    lineHeight: '15px',
+      fontWeight: 'bold', // 设置字体加粗
+      fontSize: '15px', // 设置字体大小
+      textAlign: 'center', // 设置文本居中
+      lineHeight: '15px',
   };
 };
 
+
+// 添加公告
 const handleAddNotice = async () => {
   try {
     // 1. 表单验证
@@ -784,13 +740,14 @@ const handleAddNotice = async () => {
              newNotice.value.date : 
              newNotice.value.date.format('YYYY-MM-DD')) : 
             new Date().toISOString().split('T')[0],
-      stock_num: newNotice.value.stock_num || '未知',
-      company: newNotice.value.company || '未知'
+      stock_num: newNotice.value.stock_num || '未知'
     };
+
+    console.log('添加公告请求数据:', noticeData);
 
     // 3. 调用后端API
     const response = await axios.post(
-      'http://127.0.0.1:5000/api/textPreprocess_api/addAnnouncement',
+      'http://127.0.0.1:5000/textPreprocess_api/addAnnouncement',
       noticeData,
       {
         headers: {
@@ -812,8 +769,7 @@ const handleAddNotice = async () => {
         title: '',
         content: '',
         date: '',
-        stock_num: '',
-        company: ''
+        stock_num: ''
       };
       
       // 刷新表格数据
@@ -826,18 +782,73 @@ const handleAddNotice = async () => {
     ElMessage.error(`添加公告失败: ${error.message}`);
   }
 };
+
+
+//更新公告详情
+const updateDetails = (row: any) => {
+  updateNotice.value = {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    date: row.date,
+    stock_num: row.stock_num
+  };
+  updateDialogVisible.value = true;
+};
+
+
+// 处理更新公告详情
+const handleUpdateNotice = async () => {
+  try {
+    // 表单验证
+    if (!updateNotice.value.title || !updateNotice.value.content) {
+      ElMessage.warning('请填写标题和内容');
+      return;
+    }
+
+    // 准备请求数据
+    const noticeData = {
+      id: updateNotice.value.id,
+      title: updateNotice.value.title,
+      content: updateNotice.value.content,
+      date: updateNotice.value.date,
+      stock_num: updateNotice.value.stock_num
+    };
+
+    // 调用后端API
+    const response = await axios.post(
+      'http://127.0.0.1:5000/textPreprocess_api/updateAnnouncement',
+      noticeData,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data.success) {
+      ElMessage.success('公告修改成功');
+      updateDialogVisible.value = false;
+      fetchOperationData();
+    } else {
+      throw new Error(response.data.message || '修改公告失败');
+    }
+  } catch (error) {
+    console.error('修改公告错误:', error);
+    ElMessage.error(`修改公告失败: ${error.message}`);
+  }
+};
+
 </script>
 
 <style lang="css">
 .header-container {
   display: flex;
   align-items: center;
-  height: 6vh;
-  /* 适当增加高度 */
+  height: 6vh; /* 适当增加高度 */
   padding: 20px;
 }
-
-.title-container {
+.title-container {  
   font-size: 20px;
   font-weight: bold;
   padding-bottom: 20px;
@@ -846,18 +857,14 @@ const handleAddNotice = async () => {
 
 .buttons-container {
   display: flex;
-  gap: 10px;
-  /* 按钮之间的间隔 */
-  justify-content: flex-end;
-  /* 将按钮排列到容器的右侧 */
-  flex-grow: 1;
-  /* 让按钮容器占据剩余的空间 */
+  gap: 10px; /* 按钮之间的间隔 */
+  justify-content: flex-end; /* 将按钮排列到容器的右侧 */
+  flex-grow: 1; /* 让按钮容器占据剩余的空间 */
   margin-right: 10px;
 }
 
 .pagination-container {
-  bottom: 20px;
-  /* 距离底部20px */
+  bottom: 20px; /* 距离底部20px */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -899,64 +906,63 @@ const handleAddNotice = async () => {
   font-size: 14px;
   line-height: 4;
   text-align: center;
-  height: 600px;
-  /* 增加表格高度 */
+  height: 600px; /* 增加表格高度 */
 }
 
 /* 添加样式 */
 .import-form {
-  padding: 20px;
+padding: 20px;
 }
 
 .upload-demo {
-  width: 100%;
+width: 100%;
 }
 
 .el-upload__tip {
-  margin-top: 8px;
-  color: #666;
-  font-size: 12px;
+margin-top: 8px;
+color: #666;
+font-size: 12px;
 }
 
 /* 添加搜索输入框的样式 */
 .el-input {
-  margin-right: 10px;
-  transition: all 0.3s ease;
+margin-right: 10px;
+transition: all 0.3s ease;
 
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+&:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-  :deep(.el-input__wrapper) {
-    border-radius: 20px;
-    padding: 2px 15px;
-  }
+:deep(.el-input__wrapper) {
+  border-radius: 20px;
+  padding: 2px 15px;
+}
 }
 
 .content-box {
-  white-space: pre-wrap;
-  line-height: 1.6;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 4px;
+white-space: pre-wrap;
+line-height: 1.6;
+padding: 10px;
+background: #f8f9fa;
+border-radius: 4px;
 }
 
 /* 调整描述列表样式 */
 .el-descriptions__body {
-  background: #fff;
+background: #fff;
 }
-
 .el-descriptions-item__label {
-  width: 120px;
-  text-align: center;
-  background: #f5f7fa;
+width: 120px;
+text-align: center;
+background: #f5f7fa;
 }
 
 .pagination-block {
-  margin-top: 20px;
-  /* 与表格的间距 */
+  margin-top: 20px; /* 与表格的间距 */
   display: flex;
   justify-content: center;
   width: 100%;
 }
+
+
 </style>
