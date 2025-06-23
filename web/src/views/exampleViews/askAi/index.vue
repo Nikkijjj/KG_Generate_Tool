@@ -70,8 +70,8 @@ interface Message {
 
 // 路由变量
 const route = useRoute();
-// 问答项目ID
-let projectId = ref('');
+// 项目id
+const projectId = ref(route.params.askId as string || '');
 
 const userInput = ref('');
 const isLoading = ref(false);
@@ -82,7 +82,8 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const loadingResponse = ref(false);
 
 onMounted(() => {
-  projectId = route.params.askId;
+  console.log("跳转后：", route.params.askId);
+  projectId.value = route.params.askId as string;
   addMessage({
     role: 'assistant',
     content: '您好！我是AI问答助手，有什么可以帮您的吗？',

@@ -26,6 +26,10 @@ export const constantRoutes = [
         path: '/login',
         component: () => import('@/views/login/index.vue'),
     },
+    {
+        path: '/register',
+        component: () => import('@/views/register/index.vue'),
+    },
     /** 404页面 */
     {
         path: '/404',
@@ -289,7 +293,7 @@ export const constantRoutes = [
                 },
             },
             {
-                path: 'ask-ai',
+                path: '/ask-ai/:askId',
                 component: () => import('@/views/exampleViews/askAi/index.vue'),
                 name: 'ask-ai',
                 meta: {

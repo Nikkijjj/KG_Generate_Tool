@@ -4,26 +4,35 @@ import qs from 'qs';
 
 /** 公用接口 */
 const allApi = {
-    login() {
+    // login() {
         // return service({
         //     url:"/public/captcha",
         //     method:'get',
         // });
-        return Promise.resolve({
-            msg: '操作成功',
-            code: 200,
-            token: 'eyJhbGciOiJIUzUxMiJ9.eyJsb2dpbl91c2VyX2tleSI6ImJmMmYyMWRlLTUwNzctNDUxNy1hYmRlLTA0NGE4NzNhMzE0ZSJ9.DOnUxWppbtKyJGlvSBZqdExf5hrt0EdWalanz_op7rvyc9v-itJJZXbW0xn_yS5SZfXLYn1BRMlTdxadUmRmAg',
+        // return Promise.resolve({
+        //     msg: '操作成功',
+        //     code: 200,
+        //     token: 'eyJhbGciOiJIUzUxMiJ9.eyJsb2dpbl91c2VyX2tleSI6ImJmMmYyMWRlLTUwNzctNDUxNy1hYmRlLTA0NGE4NzNhMzE0ZSJ9.DOnUxWppbtKyJGlvSBZqdExf5hrt0EdWalanz_op7rvyc9v-itJJZXbW0xn_yS5SZfXLYn1BRMlTdxadUmRmAg',
+        // });
+    // },
+    login(params) {
+        return service({
+            url: '/public/login',
+            method: 'post',
+            data: params
+        });
+    },
+    register(params) {
+        return service({
+            url: '/public/register',
+            method: 'post',
+            data: params
         });
     },
     getUserInfo() {
-        return Promise.resolve({
-            msg: '操作成功',
-            code: 200,
-            data: {
-                userName: 'admin',
-                nickName: '管理员',
-                avatar: 'https://s11.ax1x.com/2023/12/15/pihx4js.jpg',
-            },
+        return service({
+            url: '/util/getUserInfo',
+            method: 'get'
         });
     },
     getMenuList() {
@@ -117,7 +126,6 @@ const allApi = {
             data: menuList,
         });
     },
-
     loadOperationData(params){
         return service({
             url: '/textPreprocess_api',
@@ -136,6 +144,27 @@ const allApi = {
         return service({
             url: '/askAI',
             method: 'post',
+            data: params,
+        });
+    },
+    getProjectList(params){
+        return service({
+            url: '/getProjectList',
+            method: 'post',
+            data: params,
+        })
+    },
+    addProject(params){
+        return service({
+            url: '/addProject',
+            method: 'post',
+            data: params,
+        });
+    },
+    deleteProject(params){
+        return service({
+            url: '/deleteProject',
+            method: 'POST',
             data: params,
         });
     },

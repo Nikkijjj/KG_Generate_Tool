@@ -1,16 +1,12 @@
 <script>
-/**
- * 登录页面
- *  */
-import { defineComponent, ref, reactive, computed, onMounted, onActivated } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import publicApi from '@/http/public.js';
 import userApi from '@/http/user.js';
 import { messageSuccess, messageError } from '@/action/messagePrompt';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import { verifiedData } from '@/common/verifiedTools';
 import { Select, ArrowRightBold, SemiSelect } from '@element-plus/icons-vue';
-import { userDataStore } from '@/store/user';
 import img_1 from '@/assets/login-imgs/img-1.gif';
 import img_2 from '@/assets/login-imgs/login-bg.svg';
 import img_3 from '@/assets/login-imgs/code.svg';
@@ -19,21 +15,23 @@ import img_5 from '@/assets/login-imgs/login-bg-2.svg';
 import img_6 from '@/assets/login-imgs/login-bg-3.svg';
 import img_7 from '@/assets/login-imgs/login-bg-4.png';
 
+// TODO 要输入邮箱，后端注册的时候要有创建时间
+// TODO 这次表单验证尽量把错误信息展示在输入框下面，不要弹出；最后点击注册的时候如果有哪个表单没满足，再弹出“请检查信息输入”
+
 export default defineComponent({
-    name: 'LoginView',
+    name: 'RegisterView', // ✅ 修改组件名
     components: {
         Select,
         ArrowRightBold,
         SemiSelect,
     },
     setup() {
-        const userData = userDataStore();
         const router = useRouter();
-        const route = useRoute();
         const dataContainer = reactive({
             form: {
                 name: '',
                 password: '',
+                confirmPassword: '', // ✅ 新增字段
                 captchaText: '',
             },
             loading: false,
@@ -50,42 +48,38 @@ export default defineComponent({
                 img_7,
             },
         });
+
         /** 验证信息 */
         function validBase(data) {
             const failData = verifiedData(data, {
                 name: {
                     label: '账号不能为空！',
                     validate(value) {
-                        if (!value && value !== 0) return false;
-                        // value = String(value);
-                        // if (value.length < 1) return false;
-                        // if (value.length > 150) return false;
-                        return true;
+                        return !!value;
                     },
                 },
                 password: {
                     label: '密码不能为空！',
                     validate(value) {
-                        if (!value && value !== 0) return false;
-                        // value = String(value);
-                        // if (value.length < 1) return false;
-                        // if (value.length > 150) return false;
-                        return true;
+                        return !!value;
+                    },
+                },
+                confirmPassword: {
+                    label: '确认密码不能为空！',
+                    validate(value) {
+                        return !!value && value === data.password;
                     },
                 },
                 captchaText: {
                     label: '验证码不能为空！',
                     validate(value) {
-                        if (!value && value !== 0) return false;
-                        // value = String(value);
-                        // if (value.length < 1) return false;
-                        // if (value.length > 7) return false;
-                        return true;
+                        return !!value;
                     },
                 },
             });
             return failData;
         }
+
         /** 获取验证码 */
         const getCaptcha = throttleFn(function () {
             if (dataContainer.loading_1) return;
@@ -106,14 +100,11 @@ export default defineComponent({
                 });
         }, 700);
         getCaptcha();
-        /** 登录操作 */
-        const onLogin = throttleFn(function (otherParmas) {
+
+        /** 注册操作 */
+        const onRegister = throttleFn(function () {
             if (dataContainer.loading) return;
-            const failData = validBase({
-                name: dataContainer.form.name,
-                password: dataContainer.form.password,
-                captchaText: dataContainer.form.captchaText,
-            });
+            const failData = validBase(dataContainer.form);
             if (failData) {
                 messageError(failData[0].label);
                 return;
@@ -121,64 +112,27 @@ export default defineComponent({
             dataContainer.loading = true;
             const params = {
                 ...dataContainer.form,
-                ...otherParmas,
+                captchaId: dataContainer.captchaId,
             };
-            params.captchaId = dataContainer.captchaId;
             userApi
-                .login(params)
-                .then(async (res) => {
-                    const data = res.data || {};
-                    console.log("res:" + data.token);
-                    dataContainer.form.password = '';
-                    /** 写入全局数据 */
-                    userData.setUserInfo({
-                        token: data.token || '',
-                    });
-                    messageSuccess('登录成功');
-                    /**
-                     * 登录成功，跳转到首页
-                     * 其他用户信息会在路由跳转是获取到
-                     *  */
-                    let routeParams = route.query || {};
-                    if (routeParams.from) {
-                        const decodedPath = decodeURIComponent(routeParams.from);
-                        console.log("routeParams.from:" + routeParams.from);
-                        console.log("userData:" + userData.userInfo.token);
-                        console.log('Decoded path:', decodedPath);
-                        router.push(decodedPath);
-                    } else {
-                        router.push('/');
-                    }
+                .register(params) // ✅ 修改为注册接口
+                .then(() => {
+                    messageSuccess('注册成功，请登录');
+                    router.push('/login'); // ✅ 注册完成跳转到登录页
                 })
                 .catch((res) => {
-                    messageError('登录失败：' + res.msg);
+                    messageError('注册失败：' + res.msg);
                 })
                 .finally(() => {
                     dataContainer.loading = false;
                     getCaptcha();
                 });
         }, 700);
-        /** 去除首尾空格 */
-        function toTrim(data, p) {
-            let str = data[p];
-            str = (str || '').replace(/^\s+|\s+$/g, '');
-            data[p] = str;
-        }
-        /** 去除特殊符号 */
-        function palindrome(data, p) {
-            let str = data[p];
-            str = (str || '').replace(
-                /[`:~!#$%^&*() \+ =<>?"{}|, \/ ;' \\ [ \] ~！#￥%……&*（） \+ ={}|《》？：“”【】、；‘’，。、]/g,
-                '',
-            );
-            data[p] = str;
-        }
+
         return {
             dataContainer,
-            onLogin,
+            onRegister,
             getCaptcha,
-            toTrim,
-            palindrome,
         };
     },
 });
@@ -195,74 +149,46 @@ export default defineComponent({
         <div class="container">
             <div class="left">
                 <el-carousel :interval="7000" arrow="never">
-                    <el-carousel-item>
+                    <el-carousel-item v-for="i in 3" :key="i">
                         <div class="item">
-                            <el-image class="img" :src="dataContainer.img.img_7" fit="contain" />
-                            <div class="title"></div>
-                            <div class="content"></div>
-                        </div>
-                    </el-carousel-item>
-                    <el-carousel-item>
-                        <div class="item">
-                            <el-image class="img img-1" :src="dataContainer.img.img_5" fit="contain" />
-                            <div class="title"></div>
-                            <div class="content"></div>
-                        </div>
-                    </el-carousel-item>
-                    <el-carousel-item>
-                        <div class="item">
-                            <el-image class="img img-2" :src="dataContainer.img.img_6" fit="contain" />
-                            <div class="title"></div>
-                            <div class="content"></div>
+                            <el-image class="img" :src="dataContainer.img[`img_${i + 4}`]" fit="contain" />
                         </div>
                     </el-carousel-item>
                 </el-carousel>
             </div>
             <div class="right">
                 <div class="container">
-                    <div class="title">登 录</div>
+                    <div class="title">注 册</div> <!-- ✅ 修改标题 -->
                     <div class="input-container">
-                        <SvgIcon :style="'width:20px;height:20px;margin-right:10px;'" name="svg:zhanghao.svg"></SvgIcon>
-                        <el-input clearable @input="
-                            () => {
-                                toTrim(dataContainer.form, 'name');
-                                palindrome(dataContainer.form, 'name');
-                            }
-                        " placeholder="账号" v-model="dataContainer.form.name" />
+                        <SvgIcon style="width:20px;height:20px;margin-right:10px;" name="svg:zhanghao.svg"></SvgIcon>
+                        <el-input clearable placeholder="账号" v-model="dataContainer.form.name" />
                     </div>
                     <div class="input-container">
-                        <SvgIcon :style="'width:20px;height:20px;margin-right:10px;'" name="svg:mima.svg"></SvgIcon>
+                        <SvgIcon style="width:20px;height:20px;margin-right:10px;" name="svg:mima.svg"></SvgIcon>
                         <el-input type="password" clearable show-password placeholder="密码"
-                            @input="
-                                () => {
-                                    toTrim(dataContainer.form, 'password');
-                                }
-                            " v-model="dataContainer.form.password" />
+                            v-model="dataContainer.form.password" />
+                    </div>
+                    <div class="input-container">
+                        <SvgIcon style="width:20px;height:20px;margin-right:10px;" name="svg:mima.svg"></SvgIcon>
+                        <el-input type="password" clearable show-password placeholder="确认密码"
+                            v-model="dataContainer.form.confirmPassword" />
                     </div>
                     <div class="input-container code">
-                        <SvgIcon :style="'width:20px;height:20px;margin-right:10px;'" name="svg:cat-code.svg"></SvgIcon>
-                        <el-input v-model="dataContainer.form.captchaText" placeholder="验证码" clearable>
-                        </el-input>
+                        <SvgIcon style="width:20px;height:20px;margin-right:10px;" name="svg:cat-code.svg"></SvgIcon>
+                        <el-input v-model="dataContainer.form.captchaText" placeholder="验证码" clearable />
                         <el-image class="img" :src="dataContainer.captchaSvg" fit="cover" @click="getCaptcha"
                             style="cursor: pointer" />
                     </div>
                     <div class="bt-list">
-                        <el-button class="login-bt" v-if="!dataContainer.form.idU" :loading="dataContainer.loading"
-                            @click="onLogin">
-                            登 录
+                        <el-button class="login-bt" :loading="dataContainer.loading" @click="onRegister">
+                            注 册 <!-- ✅ 修改按钮 -->
                         </el-button>
                     </div>
                     <div class="other">
-                        <router-link to="/register"> 没有账号？去注册 </router-link>
+                        <router-link to="/login"> 已有账号？去登录 </router-link> <!-- ✅ 跳转链接 -->
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="bottom">
-            <!-- 版权所有 @admin.dumogu.top 毒蘑菇 - 管理
-            <a href="https://github.com/wurencaideli/dumogu-admin" target="_blank" class="bt">
-                <SvgIcon :style="'width:60px;height:25px;'" name="svg:github.svg"></SvgIcon>
-            </a> -->
         </div>
     </div>
 </template>

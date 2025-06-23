@@ -4,77 +4,91 @@
  */
 import axios from 'axios';
 import { userDataStore } from '@/store/user';
-import { messageSuccess, messageError, confirm } from '@/action/messagePrompt';
 import router from '@/router';
+import { isTokenExpired } from '@/common/tokenTools';
 
-let baseApiURL = import.meta.env.VITE_APP_baseApiURL; //api原始链接
-const timeout = 13000; //api请求超时时间
+const baseApiURL = import.meta.env.VITE_APP_baseApiURL;
+const timeout = 13000;
 
 export const service = axios.create({
-    //可创建多个 axios实例
-    baseURL: baseApiURL, //设置公共的请求前缀
-    timeout: timeout, //超时终止请求
-    withCredentials: true 
+    baseURL: baseApiURL,
+    timeout: timeout,
+    withCredentials: true
 });
 
+// 请求拦截器
 service.interceptors.request.use(
     (config) => {
+        // 跳过不需要 token 的接口
+        const skipAuthUrls = ['/public/login', '/public/captcha'];
+        if (skipAuthUrls.includes(config.url)) {
+            return config;
+        }
         const userData = userDataStore();
-        config.headers = config.headers || {};
-        config.headers['token'] = userData.userInfo.token;
+        const token = localStorage.getItem('token') || userData.userInfo.token;
+
+        if (token) {
+            if (isTokenExpired(token)) {
+                handleTokenExpired();
+                return Promise.reject(new Error('Token 已过期'));
+            }
+            config.headers.Authorization = `Bearer ${token}`; // 标准格式
+        }
         return config;
     },
-    () => {
-        return Promise.reject({
-            msg: '请求发生错误，请稍后再试',
-        });
+    (error) => {
+        return Promise.reject({ msg: '请求配置错误', detail: error });
     },
 );
 
-let modelShow = false;
+// 响应拦截器
+let isTokenExpiredModalShow = false;
 service.interceptors.response.use(
     (response) => {
         const data = response.data;
         if (!data) {
-            return Promise.reject({
-                msg: '请求发生错误',
-            });
+            return Promise.reject({ msg: '响应数据格式异常' });
         }
-        const status = data.status;
-        switch (status) {
+
+        switch (data.status) {
             case 200:
                 return data;
-            case 401: //表示需要重新登录
-                if (!modelShow) {
-                    modelShow = true;
-                    confirm('登录已经失效，是否重新登录？', '登录失效', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning',
-                    })
-                        .then(() => {
-                            router.push({
-                                path: '/login',
-                            });
-                        })
-                        .catch(() => {})
-                        .finally(() => {
-                            modelShow = false;
-                        });
-                }
+            case 401:
+                handleTokenExpired();
                 return Promise.reject(data);
-            case 202: //表示失败，参数或其他原因
-                return Promise.reject(data);
-            case 500: //表示报错。未知原因
-                return Promise.reject(data);
+            case 202:
+            case 500:
             default:
                 return Promise.reject(data);
         }
     },
-    () => {
-        //数据请求发生错误
-        return Promise.reject({
-            msg: '请求发生错误，请稍后再试',
-        });
+    (error) => {
+        // 网络错误处理
+        if (error.code === 'ECONNABORTED') {
+            return Promise.reject({ msg: '请求超时，请稍后重试' });
+        }
+        if (!error.response) {
+            return Promise.reject({ msg: '网络连接异常' });
+        }
+
+        // 服务器返回的错误
+        if (error.response.status === 401) {
+            handleTokenExpired();
+        }
+
+        return Promise.reject(error.response.data || { msg: '请求发生错误' });
     },
 );
+
+// 统一处理 Token 过期
+export function handleTokenExpired() {
+    if (!isTokenExpiredModalShow) {
+        isTokenExpiredModalShow = true;
+
+        localStorage.removeItem('token'); // 清除过期 token
+
+        router.push('/login').finally(() => {
+            isTokenExpiredModalShow = false;
+        });
+    }
+}

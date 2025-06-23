@@ -72,8 +72,9 @@ export default defineConfig(({ mode }) => {
             proxy: {
                 // https://cn.vitejs.dev/config/#server-proxy
                 '/api': {
+                    target: 'http://localhost:5000/api',
                     // target: 'http://127.0.0.1:8089',
-                    target: 'https://s.dumogu.top',
+                    // target: 'https://s.dumogu.top',
                     changeOrigin: true,
                     rewrite: (p) => p.replace(/^\/api/, '/api'),
                 },
