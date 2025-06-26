@@ -20,7 +20,7 @@ export const service = axios.create({
 service.interceptors.request.use(
     (config) => {
         // 跳过不需要 token 的接口
-        const skipAuthUrls = ['/public/login', '/public/captcha'];
+        const skipAuthUrls = ['/public/login', '/public/captcha', '/public/send_code', '/public/register'];
         if (skipAuthUrls.includes(config.url)) {
             return config;
         }

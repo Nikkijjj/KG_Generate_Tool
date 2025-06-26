@@ -16,6 +16,18 @@ const allApi = {
         //     code: 200,
         // });
     },
+    sendEmailCode(email) {
+        return service({
+            url: '/public/send_code',
+            method: 'post',
+            data: { email }, // 用 data 发送 JSON
+            headers: {
+                'Content-Type': 'application/json', // 设置请求头
+            },
+            params: { _t: Date.now() }, // 防缓存参数保留也可以
+        });
+    }
+
 };
 
 export default allApi;

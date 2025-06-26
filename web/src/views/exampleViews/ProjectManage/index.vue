@@ -44,7 +44,7 @@
                     </div>
 
                     <div class="footer">
-                        <el-button type="text" style="color: #67c23a" @click.stop="editResult(item.id)">编辑</el-button>
+                        <el-button type="text" style="color: #e6a23c" @click.stop="editResult(item.id)">编辑</el-button>
                         <div style="color: #cccccc">|</div>
                         <el-button type="text" style="color: #67c23a" @click.stop="viewResult(item.id)">查看结果</el-button>
                         <div style="color: #cccccc">|</div>
@@ -94,6 +94,24 @@
         </template>
     </el-dialog>
 
+    <!-- 修改图谱项目对话框 -->
+    <el-dialog v-model="editGraphProjectDialogVisible" title="修改图谱构建项目" width="580" align-center>
+        <el-form :model="editGraphProjectForm" label-width="auto" style="max-width: 500px; margin-top: 20px;">
+            <el-form-item label="项目名称">
+                <el-input v-model="editGraphProjectForm.name" />
+            </el-form-item>
+            <el-form-item label="项目描述">
+                <el-input v-model="editGraphProjectForm.description" type="textarea" :rows="4" />
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="editGraphProjectDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitEditGraphProject">保存</el-button>
+            </div>
+        </template>
+    </el-dialog>
+
     <!-- 分页组件 -->
     <div style="position: fixed; bottom: 20px; left: 60%; transform: translateX(-50%);">
         <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[12, 24, 36, 48]"
@@ -108,7 +126,6 @@ import { Plus } from '@element-plus/icons-vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
 
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import userApi from '@/http/user.js';
@@ -170,6 +187,18 @@ const newGraphProjectForm = ref<GraphProject>({
 });
 const loadingNewProject = ref(false);
 const addGraphProjectDialogVisible = ref(false)
+
+// 修改项目变量
+const editGraphProjectForm = ref<GraphProject>({
+    id: '',
+    name: '',
+    description: '',
+    status: '',
+    stock_num: '',
+    create_time: ''
+});
+const loadingEditProject = ref(false);
+const editGraphProjectDialogVisible = ref(false)
 
 // 删除项目变量
 const loadingDeleteProject = ref(false);
@@ -256,45 +285,43 @@ const performGraphProject = async (id: string) => {
 }
 
 // 修改项目信息
-const addGraphProject = throttleFn(async () => {
-    if (loadingNewProject.value) return;
+const editResult = throttleFn((id: string) => {
+    const project = graphProjectList.value.find((item) => item.id === id);
+    if (!project) return;
 
-    const name = newGraphProjectForm.value.name?.trim();
-    const desc = newGraphProjectForm.value.description?.trim();
+    editGraphProjectForm.value = { ...project };
+    editGraphProjectDialogVisible.value = true;
+}, 500);
+const submitEditGraphProject = throttleFn(async (id: string) => {
+    const name = editGraphProjectForm.value.name?.trim();
+    const desc = editGraphProjectForm.value.description?.trim();
 
     if (!name || !desc) {
         ElMessage.warning('项目名称和项目描述均不能为空');
         return;
     }
 
-    loadingNewProject.value = true;
+    loadingEditProject.value = true;
     try {
         const params = {
+            project_id: editGraphProjectForm.value.id,
             project_name: name,
             project_desc: desc,
-            creator: currUserName.value,
         };
-        console.log(params);
-        await userApi.addProject(params);
-        ElMessage.success('新增项目成功');
+        await userApi.editProject(params); // 确保后端接口存在并命名为 updateProject
+        ElMessage.success('修改项目成功');
 
-        // 重置表单字段
-        newGraphProjectForm.value.name = '';
-        newGraphProjectForm.value.description = '';
-        addGraphProjectDialogVisible.value = false;
-
-        // 刷新项目列表
-        fetchProjects();
+        editGraphProjectDialogVisible.value = false;
+        fetchProjects(); // 刷新列表
     } catch (error) {
-        const errMsg = error?.response?.data?.msg || error.message || '新增项目失败';
+        const errMsg = error?.response?.data?.msg || error.message || '修改项目失败';
         ElMessage.error(errMsg);
-        console.error('Error adding project:', error);
+        console.error('Error editing project:', error);
     } finally {
-        loadingNewProject.value = false;
+        loadingEditProject.value = false;
     }
 }, 500);
 
-// TODO 后端修改逻辑
 // 删除项目
 const deleteGraphProject = throttleFn(async (id: string) => {
     if (loadingDeleteProject.value) return;
@@ -312,7 +339,7 @@ const deleteGraphProject = throttleFn(async (id: string) => {
             graphProjectList.value.splice(index, 1);
         }
         totalProjects.value = totalProjects.value - 1;
-        // fetchProjects();
+        fetchProjects();
     } catch (error: any) {
         const errMsg = error?.response?.data?.msg || error.message || '删除项目失败';
         ElMessage.error(errMsg);
@@ -333,9 +360,8 @@ const askAI = async (id: string) => {
 
 // TODO 结果展示应该展示出不同历史记录；下拉框形式；路由不一定正确
 const viewResult = async (id: string) => {
-    console.log('查看结果', id)
     router.push({
-        name: 'result-display',
+        name: '',
         params: { resultId: id }
     });
 }
@@ -396,12 +422,12 @@ const handleCurrentChange = (val: number) => {
 
 <style scoped lang="scss">
 .project-scroll-wrapper {
-  height: 90%;
-  overflow-y: auto;
-  border-radius: 10px;
-  background-color: #f1f1f1;
-  border: none;
-  box-shadow: none;
+    height: 90%;
+    overflow-y: auto;
+    border-radius: 10px;
+    background-color: #f1f1f1;
+    border: none;
+    box-shadow: none;
 }
 
 .no-change-on-hover:hover,
