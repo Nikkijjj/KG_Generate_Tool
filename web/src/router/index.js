@@ -313,12 +313,13 @@ export const constantRoutes = [
                 },
             },
             {
-                path: 'abstract_kg',
+                path: 'abstract_kg/:projectId',  // 添加参数占位符
                 component: () => import('@/views/exampleViews/abstractKG/index.vue'),
                 name: 'abstract_kg',
+                props: true,  // 启用props自动转换
                 meta: {
                     layoutName: 'main',
-                    redirectName: 'main-redirect',
+                    redirectName: 'main-redirect', 
                     hasTag: true,
                 },
             },

@@ -94,16 +94,19 @@ const allApi = {
             {
                 name: 'abstract_kg',
                 title: '知识图谱抽取中心',
+                hidden: true,
                 iconName: 'svg:laptop-check.svg',
             },
             {
                 name: 'upload-files',
                 title: '上传数据',
+                hidden: true,
                 iconName: 'svg:laptop-check.svg',
             },
             {
                 name: 'visual-kg-page',
                 title: '可视化知识图谱',
+                hidden: true,
                 iconName: 'svg:laptop-check.svg',
             },
             {
@@ -126,6 +129,7 @@ const allApi = {
             data: menuList,
         });
     },
+    // 文本预处理相关接口
     loadOperationData(params) {
         return service({
             url: '/textPreprocess_api',
@@ -133,6 +137,91 @@ const allApi = {
             data: params
         });
     },
+
+    searchAnnouncements(params) {
+        return service({
+            url: '/textPreprocess_api/search',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    deleteAnnouncements(params) {
+        return service({
+            url: '/textPreprocess_api/deleteAnnouncements',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    uploadAnnouncements(params) {
+        return service({
+            url: '/textPreprocess_api/uploadAnnouncements',
+            method: 'post',
+            data: params,
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    },
+    
+    addAnnouncement(params) {
+        return service({
+            url: '/textPreprocess_api/addAnnouncement',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    updateAnnouncement(params) {
+        return service({
+            url: '/textPreprocess_api/updateAnnouncement',
+            method: 'post',
+            data: params
+        });
+    },
+
+        // 知识图谱抽取相关接口
+    getProjectAnnouncements(params) {
+        return service({
+            url: '/extractSample/getProjectAnnouncements',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    saveSelectData(params) {
+        return service({
+            url: '/extractSample/saveSelectData',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    deleteSelectedData(params) {
+        return service({
+            url: '/extractSample/deleteSelectedData',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    startExtraction(params) {
+        return service({
+            url: '/extractSample/startExtraction',
+            method: 'post',
+            data: params
+        });
+    },
+    
+    getExtractionProgress(params) {
+        return service({
+            url: '/extractSample/getExtractionProgress',
+            method: 'post',
+            data: params
+        });
+    },
+
     loadExtractText(params) {
         return service({
             url: '/extractionProcess/getAllTextData',

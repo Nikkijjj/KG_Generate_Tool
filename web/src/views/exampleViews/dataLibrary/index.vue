@@ -300,6 +300,7 @@ import * as XLSX from 'xlsx';
 import { UploadFilled, Search } from '@element-plus/icons-vue';
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import axios from 'axios';
+import userApi from '@/http/user.js';
 
 // 定义一个响应式数据用于存储选中的行
 const selectedRows = ref([]);
@@ -343,7 +344,7 @@ const addNewDialogVisible = ref(false);
 const loadingSearch = ref(false);
 
 //根据股票代码搜索公告
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!searchKeyword.value.trim()) {
     fetchOperationData(); // 重新获取全部数据
     return;
@@ -352,18 +353,21 @@ const handleSearch = () => {
   const keyword = searchKeyword.value.trim();
   loadingSearch.value = true;
   
-  axios.post('http://127.0.0.1:5000/textPreprocess_api/search', {
-    keyword: keyword,
-    page: currentPage.value,
-    page_size: pageSize.value
-  }).then(response => {
-    tableData.value = response.data.data || [];
+  try {
+    const response = await userApi.searchAnnouncements({
+      keyword: keyword,
+      page: currentPage.value,
+      page_size: pageSize.value
+    });
+    console.log('搜索结果:', response.data);
+
+    tableData.value = response.data || [];
     totalSamples.value = response.data.total || 0;
-  }).catch(error => {
+  } catch (error) {
     ElMessage.error('搜索失败: ' + error.message);
-  }).finally(() => {
+  } finally {
     loadingSearch.value = false;
-  });
+  }
 };
 
 
@@ -408,16 +412,9 @@ const handleCurrentChange = (page) => {
 // 从后端获取全部公告数据
 const fetchOperationData = throttleFn(async () => {
   try {
-    const response = await axios({
-      method: 'post',
-      url: 'http://127.0.0.1:5000/textPreprocess_api',
-      data: {
-        page: currentPage.value,
-        page_size: pageSize.value
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    const response = await userApi.loadOperationData({
+      page: currentPage.value,
+      page_size: pageSize.value
     });
 
     console.log('API 响应:', response.data);
@@ -433,6 +430,7 @@ const fetchOperationData = throttleFn(async () => {
 }, 500);
 
 onMounted(fetchOperationData);
+
 //查看详情
 const handleDetails = (row: any) => {
 detailData.value = {
@@ -466,19 +464,13 @@ const handleDelete = async () => {
 
     const idsToDelete = selectedRows.value.map(row => row.id);
     
-    const response = await axios.post(
-      'http://127.0.0.1:5000/textPreprocess_api/deleteAnnouncements', 
-      { ids: idsToDelete },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const response = await userApi.deleteAnnouncements({ 
+      ids: idsToDelete 
+    });
 
-      if (response.data.success) {
+    if (response.success) {
     console.log('后端返回:', response.data);
-    if (response.data.deleted_count > 0) {
+    if (response.deleted_count > 0) {
       // 强制等待1秒确保后台合并完成（临时解决方案）
       await new Promise(resolve => setTimeout(resolve, 1000));
       await fetchOperationData();  // 重新获取数据
@@ -491,7 +483,7 @@ const handleDelete = async () => {
       ElMessage.warning('可能数据已被其他操作删除或不存在');
     }
     } else {
-      throw new Error(response.data.message || '删除失败');
+      throw new Error(response.msg || '删除失败');
     }
   } catch (error) {
     if (error !== 'cancel') {
@@ -557,52 +549,43 @@ const beforeUpload = (file: File) => {
 
 
 // 文件上传处理函数
+// 文件上传处理函数
 const handleFileUpload = async () => {
   if (!uploadForm.value.file) {
     ElMessage.warning('请先选择文件');
     return;
   }
 
+  let loading; // 在函数作用域内声明loading变量
+
   try {
-    // Create FormData for the upload
     const formData = new FormData();
     formData.append('file', uploadForm.value.file);
     formData.append('fileType', uploadForm.value.fileType);
     formData.append('delimiter', uploadForm.value.delimiter);
-    
-    // 加载动画
-    // const loading = ElLoading.service({
-    //   lock: true,
-    //   text: '文件上传中，请稍候...',
-    //   background: 'rgba(0, 0, 0, 0.7)'
-    // });
-    
-    // Here you would typically make an API call to upload the file
-    // For example:
-    // const response = await axios.post('/api/upload-notices', formData, {
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data'
-    //   }
-    // });
-    
-    // 模拟上传文件的延迟
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // 处理文件内容
-    const fileContent = await readFileContent(uploadForm.value.file);
-    const parsedData = parseFileContent(fileContent);
-    
-    // 将解析的数据添加到表格
-    tableData.value.unshift(...parsedData);
-    filteredData.value = [...tableData.value];
-    totalSamples.value = tableData.value.length;
-    
-    ElMessage.success('文件上传成功!');
-    importDialogVisible.value = false;
+
+    loading = ElLoading.service({ // 移除const，使用已声明的变量
+      lock: true,
+      text: '文件上传中，请稍候...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    });
+
+    const response = await userApi.uploadAnnouncements(formData);
+
+    if (response.success) {
+      ElMessage.success(response.msg || '文件上传成功!');
+      importDialogVisible.value = false;
+      fetchOperationData(); // 刷新表格数据
+    } else {
+      throw new Error(response.msg || '文件上传失败');
+    }
   } catch (error) {
     ElMessage.error('文件上传失败: ' + error.message);
+    console.error('上传错误:', error);
   } finally {
-    loading.close();
+    if (loading) { // 安全检查
+      loading.close();
+    }
   }
 };
 
@@ -746,18 +729,10 @@ const handleAddNotice = async () => {
     console.log('添加公告请求数据:', noticeData);
 
     // 3. 调用后端API
-    const response = await axios.post(
-      'http://127.0.0.1:5000/textPreprocess_api/addAnnouncement',
-      noticeData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const response = await userApi.addAnnouncement(noticeData);
 
     // 4. 处理响应
-    if (response.data.success) {
+    if (response.success) {
       ElMessage.success('公告添加成功');
       
       // 关闭对话框
@@ -775,7 +750,7 @@ const handleAddNotice = async () => {
       // 刷新表格数据
       fetchOperationData();
     } else {
-      throw new Error(response.data.message || '添加公告失败');
+      throw new Error(response.msg || '添加公告失败');
     }
   } catch (error) {
     console.error('添加公告错误:', error);
@@ -816,29 +791,20 @@ const handleUpdateNotice = async () => {
     };
 
     // 调用后端API
-    const response = await axios.post(
-      'http://127.0.0.1:5000/textPreprocess_api/updateAnnouncement',
-      noticeData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const response = await userApi.updateAnnouncement(noticeData);
 
-    if (response.data.success) {
+    if (response.success) {
       ElMessage.success('公告修改成功');
       updateDialogVisible.value = false;
       fetchOperationData();
     } else {
-      throw new Error(response.data.message || '修改公告失败');
+      throw new Error(response.msg || '修改公告失败');
     }
   } catch (error) {
     console.error('修改公告错误:', error);
     ElMessage.error(`修改公告失败: ${error.message}`);
   }
 };
-
 </script>
 
 <style lang="css">

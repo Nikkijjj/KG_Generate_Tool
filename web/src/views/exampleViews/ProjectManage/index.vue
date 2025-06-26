@@ -132,6 +132,7 @@ import userApi from '@/http/user.js';
 
 // TODO 每一页项目为页面大小时，新增卡片消失了
 
+const router = useRouter();
 axios.defaults.withCredentials = true;
 
 interface GraphProject {
@@ -276,51 +277,15 @@ const formatStockNum = (stockStr: string): string => {
     }
 };
 
+
 // TODO 项目流程跳转还没实现
 const performGraphProject = async (id: string) => {
+    ElMessage.success('项目流程跳转成功');
     router.push({
-        name: '',
-        params: { id },
+        name: 'abstract_kg',
+        params: { projectId: id },
     });
 }
-
-// 修改项目信息
-const editResult = throttleFn((id: string) => {
-    const project = graphProjectList.value.find((item) => item.id === id);
-    if (!project) return;
-
-    editGraphProjectForm.value = { ...project };
-    editGraphProjectDialogVisible.value = true;
-}, 500);
-const submitEditGraphProject = throttleFn(async (id: string) => {
-    const name = editGraphProjectForm.value.name?.trim();
-    const desc = editGraphProjectForm.value.description?.trim();
-
-    if (!name || !desc) {
-        ElMessage.warning('项目名称和项目描述均不能为空');
-        return;
-    }
-
-    loadingEditProject.value = true;
-    try {
-        const params = {
-            project_id: editGraphProjectForm.value.id,
-            project_name: name,
-            project_desc: desc,
-        };
-        await userApi.editProject(params); // 确保后端接口存在并命名为 updateProject
-        ElMessage.success('修改项目成功');
-
-        editGraphProjectDialogVisible.value = false;
-        fetchProjects(); // 刷新列表
-    } catch (error) {
-        const errMsg = error?.response?.data?.msg || error.message || '修改项目失败';
-        ElMessage.error(errMsg);
-        console.error('Error editing project:', error);
-    } finally {
-        loadingEditProject.value = false;
-    }
-}, 500);
 
 // 删除项目
 const deleteGraphProject = throttleFn(async (id: string) => {
