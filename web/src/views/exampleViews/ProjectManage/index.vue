@@ -115,6 +115,7 @@ import userApi from '@/http/user.js';
 
 // TODO 每一页项目为页面大小时，新增卡片消失了
 
+const router = useRouter();
 axios.defaults.withCredentials = true;
 
 interface GraphProject {
@@ -247,52 +248,15 @@ const formatStockNum = (stockStr: string): string => {
     }
 };
 
+
 // TODO 项目流程跳转还没实现
 const performGraphProject = async (id: string) => {
+    ElMessage.success('项目流程跳转成功');
     router.push({
-        name: '',
-        params: { id },
+        name: 'abstract_kg',
+        params: { projectId: id },
     });
 }
-
-// 修改项目信息
-const addGraphProject = throttleFn(async () => {
-    if (loadingNewProject.value) return;
-
-    const name = newGraphProjectForm.value.name?.trim();
-    const desc = newGraphProjectForm.value.description?.trim();
-
-    if (!name || !desc) {
-        ElMessage.warning('项目名称和项目描述均不能为空');
-        return;
-    }
-
-    loadingNewProject.value = true;
-    try {
-        const params = {
-            project_name: name,
-            project_desc: desc,
-            creator: currUserName.value,
-        };
-        console.log(params);
-        await userApi.addProject(params);
-        ElMessage.success('新增项目成功');
-
-        // 重置表单字段
-        newGraphProjectForm.value.name = '';
-        newGraphProjectForm.value.description = '';
-        addGraphProjectDialogVisible.value = false;
-
-        // 刷新项目列表
-        fetchProjects();
-    } catch (error) {
-        const errMsg = error?.response?.data?.msg || error.message || '新增项目失败';
-        ElMessage.error(errMsg);
-        console.error('Error adding project:', error);
-    } finally {
-        loadingNewProject.value = false;
-    }
-}, 500);
 
 // TODO 后端修改逻辑
 // 删除项目

@@ -1,8 +1,8 @@
 <template>
   <div class="page-container" :key="layoutKey">
     <!-- 上半部分：表格卡片 -->
-<div class="top-section">
-      <div class="card table-card">
+    <div class="top-section">
+      <div class="card table-cardc">
         <div class="main-container">
           <div class="header-container">
             <span class="header-title">
@@ -10,11 +10,18 @@
             </span>
             <div class="buttons-container">
               <el-button type="primary" @click="handleCreate">从操作库导入</el-button>
+              <el-button 
+                type="danger" 
+                @click="handleDelete(selectedRows)" 
+                :disabled="selectedRows.length === 0"
+              >
+                批量删除 ({{ selectedRows.length }})
+              </el-button>
               <el-button type="warning" @click="handleDownload">下载</el-button>
             </div>
           </div>
           
-           <div class="table-wrapper">
+          <div class="table-wrapper">
             <el-table
               ref="multipleTable"
               border
@@ -25,10 +32,17 @@
               class="custom-table"
               :header-cell-style="headerCellStyle"
             >
+              <!-- 添加多选列 -->
+              <el-table-column
+                type="selection"
+                width="55"
+                align="center"
+              />
               <el-table-column
                 prop="id"
                 align="center"
                 label="公告编号"
+                show-overflow-tooltip
                 width="120"
                 fixed="left"
               />
@@ -214,11 +228,11 @@
             </template>
           </el-dialog>
 
-          <!-- 添加查看详情对话框 -->
+          <!-- 查看详情对话框 -->
           <el-dialog 
             v-model="detailDialogVisible" 
             title="公告详情" 
-            width="60%"
+            width="55%"
           >
             <el-descriptions :column="2" border>
               <el-descriptions-item label="公告编号" width="150">{{ detailData.id }}</el-descriptions-item>
@@ -354,7 +368,6 @@ import { useRouter } from 'vue-router';
 import { MagicStick, Cpu, VideoPlay, View, CircleCheckFilled } from '@element-plus/icons-vue';
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import userApi from '@/http/user.js';
-import axios from 'axios';
 import { useRoute } from 'vue-router'
 
 // 表格相关数据
@@ -369,11 +382,12 @@ const selectedRows = ref([]);
 const tableData = ref([]);
 const dialogTableData = ref([]);
 const router = useRouter();
+const route = useRoute()
+const multipleTable = ref(null);
 
 const searchKeyword = ref('');
 const loadingSearch = ref(false);
 
-const route = useRoute()
 const layoutKey = ref(0)
 
 // 对话框相关数据
@@ -400,6 +414,7 @@ const extractionMethods = ref([
   { value: 'method2', label: '因果关系抽取' },
   { value: 'method3', label: '子图抽取' },
   { value: 'method4', label: '共指关系抽取' },
+  { value: 'method5', label: '通用关系抽取' },
 ])
 
 const modelBase = ref('')
@@ -415,12 +430,7 @@ const progressPercentage = ref(0)
 const progressStatus = ref('')
 let progressInterval: number | null = null
 
-// 使用 `defineProps` 接收 `props`
-const props = defineProps<{
-    eventType: string;
-    projectId: string;
-}>();
-const { eventType, projectId } = toRefs(props);
+const projectId = ref(route.params.projectId)
 
 
 // 方法
@@ -446,35 +456,6 @@ const handleDialogCurrentChange = (page) => {
   fetchOperationData();
 };
 
-const fetchExtractSample = throttleFn(async () => {
-  if (loadingExtractSample.value) return;
-  loadingExtractSample.value = true;
-  try {
-    const params = {
-      page: currentPage.value,
-      page_size: pageSize.value,
-      project_id: projectId.value
-    };
-    const res = await userApi.loadExtractText(params);
-    
-    tableData.value = (res.data || []).map((item, index) => ({
-      index: index + 1,
-      id: item.id || '',
-      title: item.title || '',
-      content: item.content || '',
-      publishTime: item.publishTime || '',
-      stock_num: item.stock_num || '',
-    }));
-    
-    console.log("格式化后的表格数据:", tableData.value);
-    totalSamples.value = res.count || 0;
-    
-  } catch (error) {
-    // 错误处理保持不变...
-  } finally {
-    loadingExtractSample.value = false;
-  }
-}, 500);
 
 const fetchOperationData = throttleFn(async () => {
   if (loadingOperationData.value) return;
@@ -485,18 +466,8 @@ const fetchOperationData = throttleFn(async () => {
       page_size: dialogPageSize.value // 确保使用当前对话框的页大小
     };
     console.log('Fetching operation data with params:', params); // 调试日志
-    
-   const res = await axios({
-      method: 'post',
-      url: 'http://127.0.0.1:5000/textPreprocess_api',
-      data: {
-        page: dialogCurrentPage.value,
-        page_size: dialogPageSize.value
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+
+    const res = await userApi.loadOperationData(params);
 
     console.log("原始对话框数据:", res.data);
     
@@ -515,62 +486,52 @@ const fetchOperationData = throttleFn(async () => {
 
 const handleDetails = (row: any) => {
   detailData.value = {
-    index: row.index,
+    id: row.id,
     title: row.title,
     content: row.content,
-    publishTime: row.publishTime,
-    summary: row.summary
+    date: row.date,
+    stock_num: row.stock_num,
   };
   detailDialogVisible.value = true;
 };
 
-const handleDelete = (rows) => {
-  ElMessageBox.confirm(
-    `是否确定要删除选中的${rows.length}条数据？`, 
-    '删除确认', 
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(async () => {
-    const loading = ElLoading.service({
-      lock: true,
-      text: '正在删除中...',
-      background: 'rgba(0, 0, 0, 0.7)'
+const handleDelete = async (rowsToDelete) => {
+  if (!rowsToDelete || rowsToDelete.length === 0) {
+    ElMessage.warning('请先选择要删除的数据');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${rowsToDelete.length} 条数据吗？`, 
+      '删除确认', 
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+
+    const response = await userApi.deleteSelectedData({
+      project_id: projectId.value,
+      ids: rowsToDelete.map(row => row.id)
     });
 
-    try {
-      const params = {
-        project_id: projectId.value,
-        titles: rows.map(row => row.title)
-      };
+    if (response.status === 200) { 
 
-      await userApi.deleteSample(params);
-
-      const rowSet = new Set(rows);
-      tableData.value = tableData.value.filter(row => !rowSet.has(row));
+      await fetchExtractSample();
+      // 清空选中项
       selectedRows.value = [];
-      
-      ElMessage.success({
-        message: `成功删除 ${rows.length} 条数据`,
-        duration: 3000
-      });
-    } catch (error) {
-      console.error('删除操作失败:', error);
-      ElMessage.error({
-        message: `删除失败: ${error.response?.data?.msg || error.message || '未知错误'}`,
-        duration: 5000
-      });
-    } finally {
-      loading.close();
+      ElMessage.success('删除成功');
+    } else {
+      throw new Error(response.msg || '删除失败');
     }
-  }).catch(() => {
-    ElMessage.info({
-      message: '已取消删除',
-      duration: 2000
-    });
-  });
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除错误详情:', error.response?.data || error.message);
+      ElMessage.error(`删除失败: ${error.message}`);
+    }
+  }
 };
 
 const handleDownload = () => {
@@ -613,22 +574,9 @@ const confirmImport = async () => {
     return;
   }
   
-  const newIndex = tableData.value.length > 0 ? 
-    Math.max(...tableData.value.map(item => item.index)) + 1 : 1;
-  
-  const importedData = selectedDialogRows.value.map((row, i) => ({
-    ...row,
-    index: newIndex + i,
-    title: row.title,
-    content: row.content,
-    publishTime: row.publishTime,
-    summary: row.summary,
-    insert_time: new Date().toISOString()
-  }));
-  
   try {
-    await saveSelectedData(importedData);
-    tableData.value = [...tableData.value, ...importedData];
+    // 直接传递选中的行数据
+    await saveSelectedData(selectedDialogRows.value);
     dialogVisible.value = false;
     ElMessage.success(`成功导入${selectedDialogRows.value.length}条数据`);
     selectedDialogRows.value = [];
@@ -639,46 +587,70 @@ const confirmImport = async () => {
   }
 };
 
-const saveSelectedData = throttleFn(async (dataToSave) => {
+// 保存选中的数据
+const saveSelectedData = async (dataToSave) => {
   if (savingSelectedData.value) return;
   savingSelectedData.value = true;
   
   try {
-    const currentTime = new Date().toISOString();
-
+    // 只传递ID数组
     const params = {
       project_id: projectId.value,
-      event_type: eventType.value,
-      operator: currUserName.value,
-      data: dataToSave.map(item => ({
-        title: item.title,
-        content: item.content,
-        publish_time: item.publishTime,
-        summary: item.summary,
-        insert_time: item.insert_time
-      }))
+      announcement_ids: dataToSave.map(item => item.id)
     };
     
-    const res = await userApi.saveSelectedData(params); 
-    console.log("保存参数:", params);
-    console.log("res", res)
+    const res = await userApi.saveSelectData(params);
     
-    return res;
+    if (res.status === 200) {
+      // 保存成功后刷新表格数据
+      await fetchExtractSample();
+      return res.data;
+    } else {
+      throw new Error(res.msg || '导入失败');
+    }
     
   } catch (error) {
-    const errMsg = error?.res?.data?.msg || error.message || '该数据已导入';
+    const errMsg = error?.response?.data?.msg || error.message || '该数据已导入';
     ElMessage.warning(errMsg);
     console.error('Error save selected data:', error);
+    throw error;
   } finally {
     savingSelectedData.value = false;
   }
+};
+
+// 获取项目所有公告详细数据
+const fetchExtractSample = throttleFn(async () => {
+  if (loadingExtractSample.value) return;
+  loadingExtractSample.value = true;
+  try {
+    // 使用新接口获取项目公告数据
+    const res = await userApi.getProjectAnnouncements({
+      project_id: projectId.value
+    });
+    
+    tableData.value = (res.data || []).map((item, index) => ({
+      index: index + 1,
+      id: item.id || '',
+      title: item.title || '',
+      content: item.content || '',
+      date: item.date || '',
+      stock_num: item.stock_num || '',
+    }));
+    
+    totalSamples.value = res.count || tableData.value.length;
+    
+  } catch (error) {
+    const errMsg = error?.response?.data?.msg || error.message || '获取数据失败';
+    ElMessage.error(errMsg);
+    console.error('Error fetching extract samples:', error);
+  } finally {
+    loadingExtractSample.value = false;
+  }
 }, 500);
 
-defineExpose({
-  saveSelectedData
-});
 
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!searchKeyword.value.trim()) {
     fetchOperationData(); // 重新获取全部数据
     return;
@@ -687,19 +659,23 @@ const handleSearch = () => {
   const keyword = searchKeyword.value.trim();
   loadingSearch.value = true;
   
-  axios.post('http://127.0.0.1:5000/textPreprocess_api/search', {
-    keyword: keyword,
-    page: dialogCurrentPage.value,
-    page_size: dialogPageSize.value
-  }).then(response => {
-    dialogTableData.value = response.data.data || [];
+  try {
+    const response = await userApi.searchAnnouncements({
+      keyword: keyword,
+      page: currentPage.value,
+      page_size: pageSize.value
+    });
+    console.log('搜索结果:', response.data);
+
+    dialogTableData.value = response.data || [];
     totalSamples.value = response.data.total || 0;
-  }).catch(error => {
+  } catch (error) {
     ElMessage.error('搜索失败: ' + error.message);
-  }).finally(() => {
+  } finally {
     loadingSearch.value = false;
-  });
+  }
 };
+
 
 const headerCellStyle = () => ({
   fontWeight: 'bold',
@@ -707,18 +683,6 @@ const headerCellStyle = () => ({
   textAlign: 'center',
   lineHeight: '15px',
 });
-
-// 分页处理函数
-const handleMainSizeChange = (size) => {
-  mainPageSize.value = size;
-  mainCurrentPage.value = 1;
-  fetchExtractSample();
-};
-
-const handleMainCurrentChange = (page) => {
-  mainCurrentPage.value = page;
-  fetchExtractSample();
-};
 
 
 // 抽取控制面板方法
@@ -801,14 +765,16 @@ watch(() => route.path, async () => {
 })
 
 onMounted(async () => {
+  console.log('Received projectId:', projectId.value)
   if (projectId.value) {
-    await fetchExtractSample();
+    ElMessage.success(`接收到的项目ID：${projectId.value}`)
+    await fetchExtractSample() // 使用新的数据获取方法
   }
-  await getUserInfo();
-  await fetchOperationData();
-});
+  await getUserInfo()
+  await fetchOperationData()
+})
 
-watch([eventType, projectId], async () => {
+watch(projectId, async () => {
   fetchOperationData();
 
   if (projectId.value) {
