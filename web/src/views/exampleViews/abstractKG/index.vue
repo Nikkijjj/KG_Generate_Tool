@@ -25,7 +25,7 @@
             <el-table
               ref="multipleTable"
               border
-              :data="tableData"
+              :data="currentPageData" 
               @selection-change="handleSelectionChange"
               row-key="id"
               height="42vh"
@@ -109,7 +109,7 @@
             v-model:page-size="mainPageSize"
             :page-sizes="[12, 24, 36, 48]"
             layout="total, sizes, prev, pager, next, jumper"
-            :total="tableData.length"
+            :total="tableData.length" 
           />
           
           <!-- 从操作库导入的对话框 -->
@@ -734,6 +734,12 @@ const handleClose = (done: () => void) => {
     done()
   }
 }
+
+const currentPageData = computed(() => {
+  const start = (mainCurrentPage.value - 1) * mainPageSize.value
+  const end = start + mainPageSize.value
+  return tableData.value.slice(start, end)
+})
 
 const viewResults = () => {
     router.push({
