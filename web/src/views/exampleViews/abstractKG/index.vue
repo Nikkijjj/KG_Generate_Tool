@@ -662,13 +662,13 @@ const handleSearch = async () => {
   try {
     const response = await userApi.searchAnnouncements({
       keyword: keyword,
-      page: currentPage.value,
-      page_size: pageSize.value
+      page: dialogCurrentPage.value,  // 使用对话框当前页码
+      page_size: dialogPageSize.value // 使用对话框页大小
     });
     console.log('搜索结果:', response.data);
 
-    dialogTableData.value = response.data || [];
-    totalSamples.value = response.data.total || 0;
+    dialogTableData.value = response.data.data || response.data || [];
+    totalSamples.value = response.data.total || response.data.data?.total || 0;
   } catch (error) {
     ElMessage.error('搜索失败: ' + error.message);
   } finally {

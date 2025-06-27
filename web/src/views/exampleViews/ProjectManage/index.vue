@@ -129,6 +129,7 @@ import { ref, onMounted } from 'vue';
 
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import userApi from '@/http/user.js';
+import { useRouter } from 'vue-router';
 
 // TODO 每一页项目为页面大小时，新增卡片消失了
 
