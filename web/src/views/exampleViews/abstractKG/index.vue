@@ -55,11 +55,14 @@
               />
               <el-table-column
                 label="内容"
-                show-overflow-tooltip
                 align="center"
                 prop="content"
                 width="600"
-              />
+              >
+                <template #default="{row}">
+                  {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+                </template>
+              </el-table-column>
               <el-table-column
                 label="发布时间"
                 show-overflow-tooltip
@@ -181,11 +184,14 @@
               />
               <el-table-column
                 label="内容"
-                show-overflow-tooltip
                 align="center"
                 prop="content"
                 width="600"
-              />
+              >
+                <template #default="{row}">
+                  {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+                </template>
+              </el-table-column>
               <el-table-column
                 label="发布时间"
                 show-overflow-tooltip
