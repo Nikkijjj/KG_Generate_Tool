@@ -492,14 +492,14 @@
           <div class="method-option">
             <el-icon><Connection /></el-icon>
             <span>LLM智能抽取</span>
-            <el-tag type="info" size="small">高精度</el-tag>
+            <el-tag type="info" size="small">高效率</el-tag>
           </div>
         </el-radio>
         <el-radio label="algorithm" size="large">
           <div class="method-option">
             <el-icon><Cpu /></el-icon>
             <span>抽取算法</span>
-            <el-tag type="info" size="small">高性能</el-tag>
+            <el-tag type="info" size="small">高精度</el-tag>
           </div>
         </el-radio>
       </el-radio-group>
