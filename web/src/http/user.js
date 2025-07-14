@@ -264,6 +264,118 @@ const allApi = {
             data: params,
         });
     },
+       // 节点相关接口
+    getNodesByProject(params) {
+        return service({
+            url: '/get_nodes_by_project',
+            method: 'get',
+            params
+        });
+    },
+
+    // extractNodesWithLLM(params, config) {
+    //     return service({
+    //         url: '/extract_nodes_with_llm',
+    //         method: 'post',
+    //         data: params,
+    //         onDownloadProgress: config?.onDownloadProgress,
+    //         responseType: 'stream'
+    //     });
+    // },
+    extractNodesWithLLM(params, config) {
+        return service({
+            url: '/extract_nodes_with_llm',
+            method: 'post',
+            data: params,
+            responseType: 'stream',  // 使用stream类型
+            onDownloadProgress: config?.onDownloadProgress,
+            headers: {
+                'Accept': 'application/x-ndjson'
+            }
+        });
+    },
+   
+    deleteNodesByProject: (data) => {
+        return service({
+            url: '/delete_nodes_by_project',
+            method: 'post',
+            data: data,  // 使用data传递JSON参数
+            headers: {
+            'Content-Type': 'application/json'  // 明确设置Content-Type
+            }
+        });
+    },
+
+    // 关系抽取相关接口
+// extractRelations(params, config) {
+//     return service({
+//         url: '/extract_relations',
+//         method: 'post',
+//         data: params,
+//         responseType: 'stream',  // 使用stream类型接收流式响应
+//         onDownloadProgress: config?.onDownloadProgress,
+//         headers: {
+//             'Accept': 'application/x-ndjson'
+//         }
+//     });
+// },
+extractRelations(params) {
+    return service({
+        url: '/extract_relations',
+        method: 'post',
+        data: params,  // 使用 data 而不是 params
+        headers: {
+            'Content-Type': 'application/json'  // 明确设置 Content-Type
+        }
+    });
+},
+
+deleteEdgesByProject: (params) => {
+  return service({
+    url: '/delete_edges_by_project',
+    method: 'post',
+    data: params
+  });
+},
+
+// 获取项目关系数据
+getEdgesByProject(params) {
+    return service({
+        url: '/get_edges_by_project',
+        method: 'get',
+        params
+    });
+},
+
+// 获取知识图谱可视化HTML文件
+getKgVisualization(params) {
+    return service({
+        url: '/get_kg_visualization',
+        method: 'get',
+        params
+    });
+},
+
+// 删除项目关系数据
+// deleteEdgesByProject(data) {
+//     return service({
+//         url: '/delete_edges_by_project',
+//         method: 'post',
+//         data: data,
+//         headers: {
+//             'Content-Type': 'application/json'
+//         }
+//     });
+// },
+
+// 获取完整的图谱数据（节点+边）
+getFullGraphData(params) {
+    return service({
+        url: '/get_full_graph_data',
+        method: 'get',
+        params
+    });
+}
 };
 
 export default allApi;
