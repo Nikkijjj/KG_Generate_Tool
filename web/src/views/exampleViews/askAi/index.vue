@@ -1,54 +1,53 @@
 <template>
-  <div class="page-container">
-    <div class="chat-card">
-      <header class="chat-header">
-        <h1>AI 问答助手</h1>
-        <p class="subtitle">随时为您解答各种问题</p>
-      </header>
+  <div class="chat-card">
+    <header class="chat-header">
+      <h1>AI 问答助手</h1>
+      <p class="subtitle">随时为您解答各种问题</p>
+    </header>
 
-      <div class="chat-main">
-        <div class="chat-messages" ref="messagesContainer">
-          <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
-            <div class="message-avatar">
-              <img v-if="message.role === 'user'" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                alt="用户">
-              <img v-else src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="AI">
-            </div>
-            <div class="message-content">
-              <div class="message-text" v-html="message.content"></div>
-              <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-            </div>
+    <div class="chat-main">
+      <div class="chat-messages" ref="messagesContainer">
+        <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
+          <div class="message-avatar">
+            <img v-if="message.role === 'user'" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="用户">
+            <img v-else src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="AI">
           </div>
-
-          <div v-if="isLoading" class="message assistant">
-            <div class="message-avatar">
-              <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="AI">
+          <div class="message-content">
+            <div class="message-text">
+              <VueMarkdown :source="message.content" />
             </div>
-            <div class="message-content">
-              <div class="message-text typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </div>
+            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
 
-        <div class="chat-input-area">
-          <form @submit.prevent="sendMessage">
-            <div class="input-container">
-              <input v-model="userInput" type="text" placeholder="向AI提问..." @keydown.enter="sendMessage" />
-              <button type="submit" :disabled="isLoading">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
+        <div v-if="isLoading" class="message assistant">
+          <div class="message-avatar">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="AI">
+          </div>
+          <div class="message-content">
+            <div class="message-text typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
-            <p class="input-hint">AI可能会犯错，请核实重要信息</p>
-          </form>
+          </div>
         </div>
+      </div>
+
+      <div class="chat-input-area">
+        <form @submit.prevent="sendMessage">
+          <div class="input-container">
+            <input v-model="userInput" type="text" placeholder="向AI提问..." @keydown.enter="sendMessage" />
+            <button type="submit" :disabled="isLoading">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <p class="input-hint">AI可能会犯错，请核实重要信息</p>
+        </form>
       </div>
     </div>
   </div>
@@ -59,6 +58,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 import userApi from '@/http/user.js';
+import VueMarkdown from 'vue3-markdown-it';
 
 axios.defaults.withCredentials = true;
 
@@ -158,20 +158,12 @@ const scrollToBottom = () => {
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  background-color: #f0f2f5;
-}
-
 .chat-card {
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 1000px;
-  height: 800px;
+  height: 100%;
   background-color: #ffffff;
   border-radius: 5px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -179,21 +171,21 @@ const scrollToBottom = () => {
 }
 
 .chat-header {
-  padding: 10px;
+  padding: 4px;
   text-align: center;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e5e6;
 
   h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     color: #333;
     font-weight: 600;
   }
 
   .subtitle {
-    margin: 0.5rem 0 0;
-    font-size: 0.875rem;
+    margin: 0rem 0 0;
+    font-size: 0.75rem;
     color: #666;
   }
 }
@@ -257,11 +249,12 @@ const scrollToBottom = () => {
   gap: 0.25rem;
   flex: 1;
   max-width: calc(100% - 50px);
+  font-size: 0.88rem; 
 }
 
 .message-text {
-  padding: 0.75rem 1rem;
-  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+  line-height: 1.4;
   word-break: break-word;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -272,7 +265,7 @@ const scrollToBottom = () => {
 }
 
 .chat-input-area {
-  padding: 1.5rem;
+  padding: 1rem;
   background-color: #ffffff;
   border-top: 1px solid #e5e5e6;
 
@@ -286,7 +279,7 @@ const scrollToBottom = () => {
   align-items: center;
   background-color: #f7f7f8;
   border-radius: 24px;
-  padding: 0.75rem 1.25rem;
+  padding: 0.3rem 1rem;
   border: 1px solid #e5e5e6;
   transition: all 0.2s;
 
@@ -299,8 +292,8 @@ const scrollToBottom = () => {
     flex: 1;
     border: none;
     background: transparent;
-    padding: 0.25rem;
-    font-size: 1rem;
+    padding: 0.1rem;
+    font-size: 0.875rem;
     outline: none;
   }
 
@@ -308,7 +301,7 @@ const scrollToBottom = () => {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.25rem;
     color: #3b82f6;
     transition: color 0.2s;
 
@@ -324,7 +317,7 @@ const scrollToBottom = () => {
 }
 
 .input-hint {
-  margin: 0.75rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.75rem;
   color: #999;
   text-align: center;

@@ -145,7 +145,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     deleteAnnouncements(params) {
         return service({
             url: '/textPreprocess_api/deleteAnnouncements',
@@ -153,7 +153,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     uploadAnnouncements(params) {
         return service({
             url: '/textPreprocess_api/uploadAnnouncements',
@@ -164,7 +164,7 @@ const allApi = {
             }
         });
     },
-    
+
     addAnnouncement(params) {
         return service({
             url: '/textPreprocess_api/addAnnouncement',
@@ -172,7 +172,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     updateAnnouncement(params) {
         return service({
             url: '/textPreprocess_api/updateAnnouncement',
@@ -181,7 +181,7 @@ const allApi = {
         });
     },
 
-        // 知识图谱抽取相关接口
+    // 知识图谱抽取相关接口
     getProjectAnnouncements(params) {
         return service({
             url: '/extractSample/getProjectAnnouncements',
@@ -189,7 +189,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     saveSelectData(params) {
         return service({
             url: '/extractSample/saveSelectData',
@@ -197,7 +197,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     deleteSelectedData(params) {
         return service({
             url: '/extractSample/deleteSelectedData',
@@ -205,7 +205,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     startExtraction(params) {
         return service({
             url: '/extractSample/startExtraction',
@@ -213,7 +213,7 @@ const allApi = {
             data: params
         });
     },
-    
+
     getExtractionProgress(params) {
         return service({
             url: '/extractSample/getExtractionProgress',
@@ -229,11 +229,13 @@ const allApi = {
             data: params,
         });
     },
-    getAIResponse(params) {
+    getAIResponse(params, config = {}) {
         return service({
             url: '/askAI',
             method: 'post',
             data: params,
+            timeout: 60000, // 设置超时时间为20秒
+            ...config, // 允许外部传递额外配置
         });
     },
     getProjectList(params) {
