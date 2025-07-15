@@ -68,10 +68,18 @@ interface Message {
   timestamp: Date;
 }
 
+const props = defineProps({
+  param: {
+    type: String,
+    required: true
+  }
+});
+
 // 路由变量
 const route = useRoute();
 // 项目id
-const projectId = ref(route.params.askId as string || '');
+const projectId = ref(props.param); 
+console.log("问AI项目ID:", projectId.value);
 
 const userInput = ref('');
 const isLoading = ref(false);
@@ -82,8 +90,6 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const loadingResponse = ref(false);
 
 onMounted(() => {
-  console.log("跳转后：", route.params.askId);
-  projectId.value = route.params.askId as string;
   addMessage({
     role: 'assistant',
     content: '您好！我是AI问答助手，有什么可以帮您的吗？',
@@ -126,9 +132,8 @@ const getAIResponse = async (question: string): Promise<string> => {
   if (loadingResponse.value) return '';
   loadingResponse.value = true;
   try {
-    // TODO 把项目ID改成页面跳转传来的参数！
     const params = {
-      id: "123",
+      id: projectId.value,
       query: question
     };
     const response = await userApi.getAIResponse(params);

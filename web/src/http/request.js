@@ -8,7 +8,7 @@ import router from '@/router';
 import { isTokenExpired } from '@/common/tokenTools';
 
 const baseApiURL = import.meta.env.VITE_APP_baseApiURL;
-const timeout = 13000;
+const timeout = 50000000;
 
 export const service = axios.create({
     baseURL: baseApiURL,

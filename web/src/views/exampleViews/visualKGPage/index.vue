@@ -143,8 +143,7 @@
             </pane>
             <pane min-size="50">
               <h3 style="margin-bottom: 10px">问AI助手</h3>
-              <!-- <p>这里放置下半部分内容，例如控制台、提示等</p> -->
-              <AskAi />
+              <AskAi :param="projectId" />
             </pane>
           </splitpanes>
         </div>
@@ -184,6 +183,9 @@ import { ElMessage } from 'element-plus'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import AskAi from '@/views/exampleViews/askAi/index.vue';
+
+// TODO 项目ID还没设置
+const projectId = ref("96050996")
 
 const sidebarVisible = ref(false)
 

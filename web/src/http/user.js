@@ -106,7 +106,7 @@ const allApi = {
             {
                 name: 'visual-kg-page',
                 title: '可视化知识图谱',
-                hidden: true,
+                // hidden: true,
                 iconName: 'svg:laptop-check.svg',
             },
             {
@@ -234,7 +234,7 @@ const allApi = {
             url: '/askAI',
             method: 'post',
             data: params,
-            timeout: 60000, // 设置超时时间为20秒
+            timeout: 600000, 
             ...config, // 允许外部传递额外配置
         });
     },
