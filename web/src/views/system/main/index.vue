@@ -2,79 +2,68 @@
     <DefinScrollbar height="100%" :showUpBt="true">
         <div class="page-container main-view">
             <div class="container">
-                <h3>毒蘑菇 - 管理</h3>
-                <p>
-                    该项目基于此
-                    <a
-                        href="https://admin.dumogu.top/base"
-                        target="_blank"
-                        style="color: #5745f9; font-weight: bold"
-                        rel="noopener noreferrer"
-                    >
-                        base项目
-                    </a>
-                    上添加了一些功能页面，点击查看
-                </p>
-                <p>
-                    naive-ui的基础例子，点击查看
-                    <a
-                        href="https://admin.dumogu.top/base-naive-ui/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="color: #5745f9; font-weight: bold"
-                    >
-                        DEMO（naive-ui + vue3）
-                    </a>
-                </p>
-                <p>
-                    antdv的基础例子，点击查看
-                    <a
-                        href="https://admin.dumogu.top/base-ant/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="color: #a8a0f1; font-weight: bold"
-                    >
-                        DEMO（antdv + vue3）
-                    </a>
-                </p>
-                <p>
-                    此项目使用
-                    <a
-                        href="https://codess.dumogu.top/manage-packets/w-project/1.0.0/js"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="color: #5745f9; font-weight: bold"
-                    >
-                        CODESS
-                    </a>
-                    来自定义部分代码提示。
-                </p>
-                <p>
-                    此项目开源地址
-                    <a
-                        href="https://github.com/wurencaideli/dumogu-admin"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="color: #5745f9; font-weight: bold"
-                    >
-                        github
-                    </a>
-                    ，
-                    <a
-                        href="https://gitee.com/wuzhanggui/dumogu-admin"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style="color: #5745f9; font-weight: bold"
-                    >
-                        gitee
-                    </a>
-                </p>
-                <p>
-                    自定义页面菜单，标签页可自定义是否缓存。可自定义切换状态。标签是根据用户目录列表来进行添加和显示的。
-                </p>
-                <p>
-                    标签页下面有小横条的表示有缓存，有两种页面列表管理，一种是修改添加会打开新页面，另一种是以对话框形式操作数据。其中对话框已经封装完善。
-                </p>
+                <h3>金融知识图谱构建平台 - 数据看板</h3>
+                
+                <!-- 顶部数据卡片 -->
+                <div class="data-cards">
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #f0f7ff;">
+                            <SvgIcon name="user" size="24" color="#1890ff"></SvgIcon>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title">注册用户</div>
+                            <div class="card-value">2,856</div>
+                            <div class="card-growth">
+                                <span class="growth-rate">↑ 12.5%</span>
+                                <span class="growth-text">较上月</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #fff7e6;">
+                            <SvgIcon name="project" size="24" color="#faad14"></SvgIcon>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title">抽取项目</div>
+                            <div class="card-value">1,243</div>
+                            <div class="card-growth">
+                                <span class="growth-rate">↑ 8.3%</span>
+                                <span class="growth-text">较上月</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #f6ffed;">
+                            <SvgIcon name="eye" size="24" color="#52c41a"></SvgIcon>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title">访问量</div>
+                            <div class="card-value">48,752</div>
+                            <div class="card-growth">
+                                <span class="growth-rate">↑ 15.2%</span>
+                                <span class="growth-text">较上月</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #fff0f6;">
+                            <SvgIcon name="knowledge" size="24" color="#eb2f96"></SvgIcon>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title">知识实体</div>
+                            <div class="card-value">5.7M</div>
+                            <div class="card-growth">
+                                <span class="growth-rate">↑ 23.1%</span>
+                                <span class="growth-text">较上月</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表区域 -->
                 <div class="echart-container">
                     <div class="top-container">
                         <div class="left">
@@ -84,8 +73,16 @@
                             <EchartContainer ref="EchartContainerRef_1"></EchartContainer>
                         </div>
                     </div>
-                    <div class="bottom-container">
+                    <div class="middle-container">
                         <EchartContainer ref="EchartContainerRef_2"></EchartContainer>
+                    </div>
+                    <div class="bottom-container">
+                        <div class="left">
+                            <EchartContainer ref="EchartContainerRef_3"></EchartContainer>
+                        </div>
+                        <div class="right">
+                            <EchartContainer ref="EchartContainerRef_4"></EchartContainer>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -95,22 +92,19 @@
 
 <script>
 /**
- * 页面例子
+ * 金融知识图谱构建平台数据看板
  */
 import {
     defineComponent,
-    onBeforeUnmount,
     ref,
     reactive,
-    getCurrentInstance,
-    onActivated,
     onMounted,
 } from 'vue';
-import { useRouter } from 'vue-router';
 import SvgIcon from '@/components/svgIcon/index.vue';
 import EchartContainer from '@/components/echartContainer.vue';
 import DefinScrollbar from '@/components/definScrollbar.vue';
 import * as echarts from 'echarts';
+import 'echarts-wordcloud'; 
 
 export default defineComponent({
     components: {
@@ -119,276 +113,369 @@ export default defineComponent({
         DefinScrollbar,
     },
     setup() {
-        const router = useRouter();
-        const EchartContainerRef = ref(); //组件实例
-        const EchartContainerRef_1 = ref(); //组件实例
-        const EchartContainerRef_2 = ref(); //组件实例
+        const EchartContainerRef = ref(); // 用户增长趋势图
+        const EchartContainerRef_1 = ref(); // 项目类型分布
+        const EchartContainerRef_2 = ref(); // 访问量趋势
+        const EchartContainerRef_3 = ref(); // 知识实体类型分布
+        const EchartContainerRef_4 = ref(); // 热门金融概念
+        
         const dataContainer = reactive({
             loading: false,
         });
+        
         onMounted(() => {
-            /** 初始化图表 */
+            /** 用户增长趋势图 */
             EchartContainerRef.value.initData({
                 backgroundColor: '',
                 title: {
-                    text: '数据开发利用',
+                    text: '用户增长趋势',
                     x: 'left',
                     textStyle: { fontSize: '15', color: '#000' },
                 },
                 tooltip: { trigger: 'axis' },
-                legend: { data: ['供温', '回温', '压力值(Mpa)'], right: 0 },
-                grid: { top: 70, right: 80, bottom: 30, left: 80 },
+                legend: { data: ['新增用户', '活跃用户'], right: 0 },
+                grid: { top: 70, right: 20, bottom: 30, left: 40 },
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['1km', '2km', '3km', '4km', '5km', '6km'],
+                        data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
                         boundaryGap: true,
                         axisTick: { show: false },
                     },
                 ],
                 yAxis: [
                     {
-                        name: '供回温度(℃）',
+                        name: '用户数',
                         nameLocation: 'middle',
-                        nameTextStyle: { padding: [3, 4, 50, 6] },
+                        nameTextStyle: { padding: [3, 4, 30, 6] },
                         splitLine: { show: true, lineStyle: { type: 'dashed', color: '#f5f5f5' } },
                         axisLine: { show: false },
                         axisTick: { show: false },
-                        axisLabel: { color: '#000', formatter: '{value} ' },
-                    },
-                    {
-                        name: '压力值(Mpa)',
-                        nameLocation: 'middle',
-                        nameTextStyle: { padding: [50, 4, 5, 6] },
-                        splitLine: { show: false },
-                        axisLine: { show: false },
-                        axisTick: { show: false },
-                        axisLabel: { color: '#000', formatter: '{value} ' },
+                        axisLabel: { color: '#000', formatter: '{value}' },
                     },
                 ],
                 series: [
                     {
-                        name: '供温',
+                        name: '新增用户',
                         type: 'line',
                         smooth: true,
                         showSymbol: true,
-                        // 矢量画五角星
-                        symbol: 'path://M150 0 L80 175 L250 75 L50 75 L220 175 Z',
-                        symbolSize: 12,
-                        yAxisIndex: 0,
+                        symbol: 'circle',
+                        symbolSize: 8,
                         areaStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                { offset: 0, color: 'rgba(250,180,101,0.3)' },
-                                { offset: 1, color: 'rgba(250,180,101,0)' },
+                                { offset: 0, color: 'rgba(24, 144, 255, 0.3)' },
+                                { offset: 1, color: 'rgba(24, 144, 255, 0)' },
                             ]),
-                            shadowColor: 'rgba(250,180,101,0.2)',
-                            shadowBlur: 20,
                         },
-                        itemStyle: { color: '#FF8000' },
-                        // data中可以使用对象，value代表相应的值，另外可加入自定义的属性
-                        data: [
-                            { value: 1, stationName: 's1' },
-                            { value: 3, stationName: 's2' },
-                            { value: 4, stationName: 's3' },
-                            { value: 9, stationName: 's4' },
-                            { value: 3, stationName: 's5' },
-                            { value: 2, stationName: 's6' },
-                        ],
+                        itemStyle: { color: '#1890ff' },
+                        data: [120, 132, 145, 160, 172, 190, 210],
                     },
                     {
-                        name: '回温',
+                        name: '活跃用户',
                         type: 'line',
                         smooth: true,
                         showSymbol: true,
-                        symbol: 'emptyCircle',
-                        symbolSize: 12,
-                        yAxisIndex: 0,
+                        symbol: 'circle',
+                        symbolSize: 8,
                         areaStyle: {
-                            color: new echarts.graphic.LinearGradient(
-                                0,
-                                0,
-                                0,
-                                1,
-                                [
-                                    { offset: 0, color: 'rgba(199, 237, 250,0.5)' },
-                                    { offset: 1, color: 'rgba(199, 237, 250,0.2)' },
-                                ],
-                                false,
-                            ),
-                        },
-                        itemStyle: {
-                            color: '#3bbc86',
-                        },
-                        data: [
-                            { value: 31, stationName: 's1' },
-                            { value: 36, stationName: 's2' },
-                            { value: 54, stationName: 's3' },
-                            { value: 24, stationName: 's4' },
-                            { value: 73, stationName: 's5' },
-                            { value: 22, stationName: 's6' },
-                        ],
-                    },
-                    {
-                        name: '压力值(Mpa)',
-                        type: 'bar',
-                        barWidth: 30,
-                        yAxisIndex: 1,
-                        itemStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                { offset: 0, color: 'rgba(108,80,243,0.3)' },
-                                { offset: 1, color: 'rgba(108,80,243,0)' },
+                                { offset: 0, color: 'rgba(82, 196, 26, 0.3)' },
+                                { offset: 1, color: 'rgba(82, 196, 26, 0)' },
                             ]),
-                            //柱状图圆角
-                            borderRadius: [30, 30, 0, 0],
                         },
-                        data: [
-                            { value: 11, stationName: 's1' },
-                            { value: 34, stationName: 's2' },
-                            { value: 54, stationName: 's3' },
-                            { value: 39, stationName: 's4' },
-                            { value: 63, stationName: 's5' },
-                            { value: 24, stationName: 's6' },
-                        ],
+                        itemStyle: { color: '#52c41a' },
+                        data: [80, 95, 110, 125, 140, 160, 185],
                     },
                 ],
             });
+            
+            /** 项目类型分布 */
             EchartContainerRef_1.value.initData({
+                title: {
+                    text: '项目类型分布',
+                    x: 'left',
+                    textStyle: { fontSize: '15', color: '#000' },
+                },
                 tooltip: {
                     trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
                 },
                 legend: {
-                    top: '5%',
-                    left: 'center',
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    data: ['企业关系图谱', '金融风险分析', '投资组合优化', '市场趋势预测', '其他']
                 },
                 series: [
                     {
-                        name: 'Access From',
+                        name: '项目类型',
                         type: 'pie',
-                        radius: ['40%', '70%'],
+                        radius: ['50%', '70%'],
                         avoidLabelOverlap: false,
                         itemStyle: {
                             borderRadius: 10,
                             borderColor: '#fff',
-                            borderWidth: 2,
+                            borderWidth: 2
                         },
                         label: {
                             show: false,
-                            position: 'center',
+                            position: 'center'
                         },
                         emphasis: {
                             label: {
                                 show: true,
-                                fontSize: 40,
-                                fontWeight: 'bold',
-                            },
+                                fontSize: '18',
+                                fontWeight: 'bold'
+                            }
                         },
                         labelLine: {
-                            show: false,
+                            show: false
                         },
                         data: [
-                            { value: 1048, name: 'Search Engine' },
-                            { value: 735, name: 'Direct' },
-                            { value: 580, name: 'Email' },
-                            { value: 484, name: 'Union Ads' },
-                            { value: 300, name: 'Video Ads' },
-                        ],
-                    },
-                ],
+                            { value: 335, name: '企业关系图谱' },
+                            { value: 310, name: '金融风险分析' },
+                            { value: 234, name: '投资组合优化' },
+                            { value: 135, name: '市场趋势预测' },
+                            { value: 154, name: '其他' }
+                        ]
+                    }
+                ]
             });
+            
+            /** 访问量趋势 */
             EchartContainerRef_2.value.initData({
                 backgroundColor: '',
                 title: {
-                    text: '政策补贴额度',
+                    text: '平台访问量趋势',
                     x: 'left',
-                    textStyle: { fontSize: '15', color: '#000000' },
+                    textStyle: { fontSize: '15', color: '#000' },
                 },
-                grid: { top: 70, right: 20, bottom: 30, left: 30 },
                 tooltip: { trigger: 'axis' },
-                legend: { data: ['预购队列', '最新成交价'], right: 0 },
-                xAxis: {
-                    data: [
-                        '1月',
-                        '2月',
-                        '3月',
-                        '4月',
-                        '5月',
-                        '6月',
-                        '7月',
-                        '8月',
-                        '9月',
-                        '10月',
-                        '11月',
-                        '12月',
-                    ],
-                },
+                legend: { data: ['总访问量', '活跃用户'], right: 0 },
+                grid: { top: 70, right: 20, bottom: 30, left: 40 },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                        boundaryGap: true,
+                        axisTick: { show: false },
+                    },
+                ],
                 yAxis: [
                     {
-                        type: 'value',
-                        name: '价格',
+                        name: '访问量',
+                        nameLocation: 'middle',
+                        nameTextStyle: { padding: [3, 4, 30, 6] },
                         splitLine: { show: true, lineStyle: { type: 'dashed', color: '#f5f5f5' } },
+                        axisLine: { show: false },
+                        axisTick: { show: false },
+                        axisLabel: { color: '#000', formatter: '{value}' },
                     },
                 ],
                 series: [
                     {
-                        name: '预购队列',
+                        name: '总访问量',
                         type: 'line',
-                        symbolSize: 6,
-                        symbol: 'circle',
                         smooth: true,
-                        data: [0, 41.1, 30.4, 65.1, 53.3, 53.3, 53.3, 41.1, 30.4, 65.1, 53.3, 10],
-                        lineStyle: { color: '#fe9a8b' },
-                        itemStyle: { color: '#fe9a8b', borderColor: '#fe9a8b' },
+                        showSymbol: true,
+                        symbol: 'circle',
+                        symbolSize: 8,
                         areaStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                { offset: 0, color: '#fe9a8bb3' },
-                                { offset: 1, color: '#fe9a8b03' },
+                                { offset: 0, color: 'rgba(235, 47, 150, 0.3)' },
+                                { offset: 1, color: 'rgba(235, 47, 150, 0)' },
                             ]),
                         },
+                        itemStyle: { color: '#eb2f96' },
+                        data: [1200, 1800, 1500, 2100, 1900, 800, 600],
                     },
                     {
-                        name: '最新成交价',
+                        name: '活跃用户',
                         type: 'line',
-                        symbolSize: 6,
-                        symbol: 'circle',
                         smooth: true,
-                        data: [0, 24.1, 7.2, 15.5, 42.4, 42.4, 42.4, 24.1, 7.2, 15.5, 42.4, 0],
-                        lineStyle: { color: '#9E87FF' },
-                        itemStyle: { color: '#9E87FF', borderColor: '#9E87FF' },
+                        showSymbol: true,
+                        symbol: 'circle',
+                        symbolSize: 8,
                         areaStyle: {
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                { offset: 0, color: '#9E87FFb3' },
-                                { offset: 1, color: '#9E87FF03' },
+                                { offset: 0, color: 'rgba(250, 173, 20, 0.3)' },
+                                { offset: 1, color: 'rgba(250, 173, 20, 0)' },
                             ]),
                         },
-                        emphasis: {
-                            itemStyle: {
-                                color: {
-                                    type: 'radial',
-                                    x: 0.5,
-                                    y: 0.5,
-                                    r: 0.5,
-                                    colorStops: [
-                                        { offset: 0, color: '#9E87FF' },
-                                        { offset: 0.4, color: '#9E87FF' },
-                                        { offset: 0.5, color: '#fff' },
-                                        { offset: 0.7, color: '#fff' },
-                                        { offset: 0.8, color: '#fff' },
-                                        { offset: 1, color: '#fff' },
-                                    ],
-                                },
-                                borderColor: '#9E87FF',
-                                borderWidth: 2,
-                            },
-                        },
+                        itemStyle: { color: '#faad14' },
+                        data: [800, 1200, 1000, 1400, 1300, 500, 400],
                     },
                 ],
             });
+            
+            /** 知识实体类型分布 */
+            EchartContainerRef_3.value.initData({
+                title: {
+                    text: '知识实体类型分布',
+                    x: 'left',
+                    textStyle: { fontSize: '15', color: '#000' },
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['金融实体', '关系', '事件', '属性'],
+                    right: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['股票', '公司', '人物', '行业', '指数']
+                },
+                series: [
+                    {
+                        name: '金融实体',
+                        type: 'bar',
+                        stack: 'total',
+                        label: {
+                            show: true
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [320, 302, 301, 334, 390],
+                        itemStyle: {
+                            color: '#1890ff'
+                        }
+                    },
+                    {
+                        name: '关系',
+                        type: 'bar',
+                        stack: 'total',
+                        label: {
+                            show: true
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [120, 132, 101, 134, 90],
+                        itemStyle: {
+                            color: '#52c41a'
+                        }
+                    },
+                    {
+                        name: '事件',
+                        type: 'bar',
+                        stack: 'total',
+                        label: {
+                            show: true
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [220, 182, 191, 234, 290],
+                        itemStyle: {
+                            color: '#faad14'
+                        }
+                    },
+                    {
+                        name: '属性',
+                        type: 'bar',
+                        stack: 'total',
+                        label: {
+                            show: true
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [150, 212, 201, 154, 190],
+                        itemStyle: {
+                            color: '#eb2f96'
+                        }
+                    }
+                ]
+            });
+            
+            /** 热门金融概念 */
+            EchartContainerRef_4.value.initData({
+                title: {
+                    text: '热门金融概念',
+                    x: 'left',
+                    textStyle: { fontSize: '15', color: '#000' },
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [
+                    {
+                        name: '热门金融概念',
+                        type: 'wordCloud',
+                        sizeRange: [12, 60],
+                        rotationRange: [-45, 45],
+                        rotationStep: 15,
+                        gridSize: 8,
+                        shape: 'circle',
+                        width: '100%',
+                        height: '100%',
+                        drawOutOfBound: false,
+                        textStyle: {
+                            fontFamily: 'sans-serif',
+                            fontWeight: 'bold',
+                            color: function () {
+                                return 'rgb(' + [
+                                    Math.round(Math.random() * 160 + 50),
+                                    Math.round(Math.random() * 160 + 50),
+                                    Math.round(Math.random() * 160 + 50)
+                                ].join(',') + ')';
+                            }
+                        },
+                        emphasis: {
+                            textStyle: {
+                                shadowBlur: 10,
+                                shadowColor: '#333'
+                            }
+                        },
+                        data: [
+                            { value: 90, name: '区块链' },
+                            { value: 85, name: '人工智能' },
+                            { value: 80, name: '量化投资' },
+                            { value: 78, name: '风险管理' },
+                            { value: 75, name: '金融科技' },
+                            { value: 70, name: '大数据分析' },
+                            { value: 68, name: '智能投顾' },
+                            { value: 65, name: '云计算' },
+                            { value: 60, name: '数字货币' },
+                            { value: 58, name: '机器学习' },
+                            { value: 55, name: '深度学习' },
+                            { value: 50, name: '自然语言处理' },
+                            { value: 48, name: '知识图谱' },
+                            { value: 45, name: '投资组合' },
+                            { value: 40, name: '算法交易' },
+                            { value: 38, name: '信用评分' },
+                            { value: 35, name: '市场预测' },
+                            { value: 30, name: '金融衍生品' },
+                            { value: 28, name: '资产定价' },
+                            { value: 25, name: '高频交易' }
+                        ]
+                    }
+                ]
+            });
         });
+        
         return {
             dataContainer,
             EchartContainerRef,
             EchartContainerRef_1,
             EchartContainerRef_2,
+            EchartContainerRef_3,
+            EchartContainerRef_4,
         };
     },
 });
@@ -406,32 +493,112 @@ export default defineComponent({
         border-radius: 5px;
         padding: 15px;
         box-sizing: border-box;
-        > * {
-            margin: 0 0 30px 0;
-            &:last-child {
-                margin: 0;
+        
+        h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 22px;
+        }
+        
+        .data-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            
+            .card {
+                flex: 1;
+                min-width: 200px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+                padding: 20px;
+                display: flex;
+                align-items: center;
+                
+                .card-icon {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 16px;
+                }
+                
+                .card-content {
+                    flex: 1;
+                    
+                    .card-title {
+                        font-size: 14px;
+                        color: #666;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .card-value {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #333;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .card-growth {
+                        font-size: 12px;
+                        
+                        .growth-rate {
+                            color: #52c41a;
+                            font-weight: bold;
+                            margin-right: 4px;
+                        }
+                        
+                        .growth-text {
+                            color: #999;
+                        }
+                    }
+                }
             }
         }
+        
         > .echart-container {
             width: 100%;
+            
             > .top-container {
                 display: flex;
                 flex-direction: row;
                 height: 300px;
+                margin-bottom: 30px;
+                
                 > .left,
                 > .right {
                     width: 0;
                     flex: 1 1 0;
                 }
+                
                 > .left {
-                    flex: 2 1 0;
-                    margin-right: 60px;
+                    margin-right: 20px;
                 }
             }
-            > .bottom-container {
+            
+            > .middle-container {
                 width: 100%;
-                height: 400px;
-                margin-top: 30px;
+                height: 350px;
+                margin-bottom: 30px;
+            }
+            
+            > .bottom-container {
+                display: flex;
+                flex-direction: row;
+                height: 300px;
+                
+                > .left,
+                > .right {
+                    width: 0;
+                    flex: 1 1 0;
+                }
+                
+                > .left {
+                    margin-right: 20px;
+                }
             }
         }
     }
