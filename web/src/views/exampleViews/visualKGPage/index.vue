@@ -1,138 +1,123 @@
 <template>
   <div class="page-container">
-    <!-- 侧边栏按钮 -->
-    <div class="toggle-button" @click="sidebarVisible = !sidebarVisible">
-      <el-icon style="color: #000; margin-right: 4px;">
-        <ChatDotRound />
-      </el-icon>
-    </div>
-
-    <div class="main-wrapper">
-      <div class="kg-card">
-        <h1 class="kg-title">可视化知识图谱</h1>
-
-        <div class="kg-content">
-          <div class="kg-visualization">
-            <div class="visualization-container" ref="graphContainer"></div>
-          </div>
-
-          <div class="kg-details">
-            <el-card class="details-card">
-              <template #header>
-                <div class="card-header">
-                  <div class="header-left">
-                    <el-button v-if="showBackButton" @click="handleBackClick" size="small" circle class="back-button">
-                      <el-icon>
-                        <ArrowLeft />
-                      </el-icon>
-                    </el-button>
-                    <span>{{ selectedItem ? selectedItem.label : '未选择项目' }}</span>
-                  </div>
-                  <el-tag v-if="selectedItem" :type="getTagType(selectedItem)">
-                    {{ selectedItem.group || '关系' }}
-                  </el-tag>
-                </div>
-              </template>
-
-              <div v-if="selectedItem">
-                <el-form label-position="top" class="details-form">
-                  <el-form-item v-for="(value, key) in selectedItem.properties" :key="key" :label="key">
-                    <el-input v-model="selectedItem.properties[key]" readonly />
-                  </el-form-item>
-
-                  <template v-if="selectedItem.group === '公告'">
-                    <el-divider />
-                    <el-tabs v-model="activeRelationTab">
-                      <el-tab-pane label="公告间关系" name="between">
-                        <el-timeline>
-                          <el-timeline-item v-for="rel in betweenAnnouncementRelations" :key="rel.id"
-                            :timestamp="rel.timestamp" placement="top">
-                            <el-card @click="handleRelationClick(rel)" shadow="hover" style="padding: 12px">
-                              <p>
-                              <div><el-tag size="small">{{ rel.label }}</el-tag></div>
-                              <div>{{ rel.toLabel }}</div>
-                              </p>
-                              <div v-if="rel.properties">
-                                <el-tag v-for="(val, propKey) in rel.properties" :key="propKey" type="info" size="small"
-                                  style="margin: 0 8px 8px 0">
-                                  {{ propKey }}: {{ val }}
-                                </el-tag>
-                              </div>
-                            </el-card>
-                          </el-timeline-item>
-                        </el-timeline>
-                      </el-tab-pane>
-                      <el-tab-pane label="公告内部关系" name="internal">
-                        <el-timeline>
-                          <el-timeline-item v-for="rel in internalAnnouncementRelations" :key="rel.id" placement="top">
-                            <el-card @click="handleRelationClick(rel)" shadow="hover" style="padding: 12px">
-                              <p>
-                              <div><el-tag size="small">{{ rel.label }}</el-tag></div>
-                              <div>{{ rel.toLabel }}</div>
-                              </p>
-                              <div v-if="rel.properties">
-                                <el-tag v-for="(val, propKey) in rel.properties" :key="propKey" type="info" size="small"
-                                  style="margin: 0 8px 8px 0">
-                                  {{ propKey }}: {{ val }}
-                                </el-tag>
-                              </div>
-                            </el-card>
-                          </el-timeline-item>
-                        </el-timeline>
-                      </el-tab-pane>
-                    </el-tabs>
-                  </template>
-
-                  <template v-else-if="relatedRelations.length > 0">
-                    <el-divider />
-                    <h4 style="margin: 16px 0 8px; color: #606266">相关关系</h4>
-                    <el-timeline>
-                      <el-timeline-item v-for="rel in relatedRelations" :key="rel.id" :timestamp="rel.timestamp"
-                        placement="top">
-                        <el-card @click="handleRelationClick(rel)" shadow="hover" style="padding: 12px">
-                          <p>
-                          <div><el-tag size="small">{{ rel.label }}</el-tag></div>
-                          <div>{{ rel.fromLabel }} → {{ rel.toLabel }}</div>
-                          </p>
-                          <div v-if="rel.properties">
-                            <el-tag v-for="(val, propKey) in rel.properties" :key="propKey" type="info" size="small"
-                              style="margin: 0 8px 8px 0">
-                              {{ propKey }}: {{ val }}
-                            </el-tag>
-                          </div>
-                        </el-card>
-                      </el-timeline-item>
-                    </el-timeline>
-                  </template>
-                </el-form>
-              </div>
-
-              <div v-else class="empty-state">
-                <el-icon :size="50" color="#909399">
-                  <InfoFilled />
-                </el-icon>
-                <p>请点击图谱中节点或关系查看详细信息</p>
-              </div>
-            </el-card>
-          </div>
+    <div class="kg-card">
+      <h1 class="kg-title">可视化知识图谱</h1>
+      
+      <div class="kg-content">
+        <!-- 左侧可视化区域 -->
+        <div class="kg-visualization">
+          <div class="visualization-container" ref="graphContainer"></div>
         </div>
-
-        <div class="button-container">
-          <el-button type="primary" size="large" @click="handleQuestionClick">
-            <el-icon>
-              <ChatDotRound />
-            </el-icon>
-            向AI问答助手提问
+        
+<!-- 右侧详细信息区域 -->
+<div class="kg-details">
+  <el-card class="details-card">
+    <template #header>
+      <div class="card-header">
+        <div class="header-left">
+          <el-button 
+            v-if="showBackButton" 
+            @click="handleBackClick"
+            size="small"
+            circle
+            class="back-button"
+          >
+            <el-icon><ArrowLeft /></el-icon>
           </el-button>
+          <span>{{ selectedItem ? selectedItem.label : '未选择项目' }}</span>
+        </div>
+        <el-tag v-if="selectedItem" :type="getTagType(selectedItem)">
+          {{ selectedItem.group || selectedItem.type || '关系' }}
+        </el-tag>
+      </div>
+    </template>
+      
+    <div v-if="selectedItem">
+      <!-- 基本信息展示 -->
+      <div class="basic-info">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="类型">
+            {{ selectedItem.type || selectedItem.group || '未知' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="名称">
+            {{ selectedItem.label || '未命名' }}
+          </el-descriptions-item>
+          <el-descriptions-item 
+            v-for="(value, key) in selectedItem.properties" 
+            :key="key" 
+            :label="key">
+            {{ value || '无' }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
 
-          <el-button type="success" size="large" @click="showExportDialog = true">
-            <el-icon>
-              <Download />
-            </el-icon>
-            导出
-          </el-button>
+      <!-- 关系展示区域 -->
+      <div v-if="relatedRelations.length > 0 && selectedItem.id" class="relations-section">
+        <el-divider />
+        <h4 class="relations-title">相关关系</h4>
+        
+        <div class="relations-container">
+          <el-card 
+            v-for="rel in relatedRelations" 
+            :key="rel.id"
+            class="relation-card"
+            shadow="hover"
+            @click="handleRelationClick(rel)"
+          >
+            <div class="relation-header">
+              <el-tag size="small" :type="getRelationTagType(rel)">
+                {{ rel.label }}
+              </el-tag>
+              <span class="relation-direction">
+                {{ rel.fromLabel }} → {{ rel.toLabel }}
+              </span>
+            </div>
+            
+            <div v-if="rel.properties" class="relation-properties">
+              <div 
+                v-for="(val, propKey) in rel.properties" 
+                :key="propKey"
+                class="property-item"
+              >
+                <span class="property-key">{{ propKey }}:</span>
+                <span class="property-value">{{ val }}</span>
+              </div>
+            </div>
+          </el-card>
         </div>
       </div>
+    </div>
+    
+    <div v-else class="empty-state">
+      <el-icon :size="50" color="#909399"><InfoFilled /></el-icon>
+      <p>请点击图谱中节点或关系查看详细信息</p>
+    </div>
+  </el-card>
+</div>
+      </div>
+
+      <div class="question-button-container">
+        <!-- <el-button 
+          type="primary" 
+          size="large" 
+          class="question-button"
+          @click="handleQuestionClick"
+        >
+          <el-icon><ChatDotRound /></el-icon>
+          向AI问答助手提问
+        </el-button> -->
+
+        <el-button 
+          type="success" 
+          size="large" 
+          class="export-button"
+          @click="showExportDialog = true"
+        >
+          <el-icon><Download /></el-icon>
+          导出
+        </el-button>
+      </div>
+    </div>
 
       <transition name="slide-fade">
         <div v-if="sidebarVisible" class="side-panel">
@@ -159,12 +144,12 @@
             <el-radio label="json">JSON文件</el-radio>
           </el-radio-group>
         </el-form-item>
-
+        
         <el-form-item label="文件名">
           <el-input v-model="exportFileName" placeholder="请输入文件名(不带后缀)" />
         </el-form-item>
       </el-form>
-
+      
       <template #footer>
         <el-button @click="showExportDialog = false">取消</el-button>
         <el-button type="primary" @click="handleExport">确认导出</el-button>
@@ -178,219 +163,362 @@ import { ref, onMounted } from 'vue'
 import { Network } from 'vis-network'
 import 'vis-network/styles/vis-network.css'
 import { InfoFilled, ChatDotRound, ArrowLeft, Download } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Splitpanes, Pane } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
-import AskAi from '@/views/exampleViews/askAi/index.vue';
+import { DataSet } from 'vis-data';
+import userApi from '@/http/user.js';
 
 // TODO 项目ID还没设置
 const projectId = ref("96050996")
 
-const sidebarVisible = ref(false)
-
 const router = useRouter()
+const route = useRoute()
+const projectId = ref(route.query.projectId as string)
+
 const graphContainer = ref<HTMLElement | null>(null)
 const selectedItem = ref<any>(null)
 const relatedRelations = ref<any[]>([])
 const showBackButton = ref(false)
 const previousSelectedItem = ref<any>(null)
 
-const activeRelationTab = ref('between')
-const betweenAnnouncementRelations = ref<any[]>([])
-const internalAnnouncementRelations = ref<any[]>([])
-
+// 导出相关状态
 const showExportDialog = ref(false)
 const exportFormat = ref('png')
 const exportFileName = ref('knowledge_graph')
 const networkInstance = ref<Network | null>(null)
 
-const mockData = {
-  nodes: [],
-  edges: []
+const EVENT_COLORS = {
+  background: '#FF6B6B',
+  border: '#D63031',
+  highlightBackground: '#FF8E8E',
+  hoverBackground: '#FF8E8E'
+};
+
+const ENTITY_COLORS = {
+  background: '#4ECDC4',
+  border: '#00B894',
+  highlightBackground: '#7EEDD2',
+  hoverBackground: '#7EEDD2'
+};
+
+
+// 获取图谱数据
+const fetchGraphData = async () => {
+  try {
+    // 获取节点数据
+    const nodesResponse = await userApi.getNodesByProject({ project_id: projectId.value })
+    const nodes = nodesResponse.data?.nodes || []
+    
+    // 获取边数据
+    const edgesResponse = await userApi.getEdgesByProject({ project_id: projectId.value })
+    const edges = edgesResponse.data?.edges || []
+    
+    return { nodes, edges }
+  } catch (error) {
+    console.error('获取图谱数据失败:', error)
+    ElMessage.error('获取图谱数据失败')
+    return { nodes: [], edges: [] }
+  }
 }
 
-const initKnowledgeGraph = () => {
-  if (!graphContainer.value) return
+onMounted(async () => {
+  const { nodes, edges } = await fetchGraphData()
+  initKnowledgeGraph(nodes, edges)
+})
 
-  const nodes = mockData.nodes.map(node => ({
-    id: node.id,
-    label: node.label,
-    group: node.group,
-    title: formatTooltip(node),
-    color: getNodeColor(node.group),
-    shape: 'dot',
-    size: 20,
-    borderWidth: 2,
-    properties: node.properties
-  }))
+// 初始化知识图谱
+const initKnowledgeGraph = (nodes: any[], edges: any[]) => {
+  console.group('初始化知识图谱')
+  console.log('节点数据:', nodes)
+  console.log('关系数据:', edges)
+  
+  // 使用 DataSet 处理节点数据
+  const nodesDataset = new DataSet(
+    nodes.map((node: any) => {
+      const isEvent = node.type === '1' // 判断是否为事件类型
+      console.log('节点类型:', node.type, isEvent)
+      
+      return {
+        id: node.id,
+        label: node.value || node.label || `节点 ${node.id}`,
+        group: node.type === '1' ? '事件' : '实体',
+        title: formatTooltip(node),
+        color: {
+          background: isEvent ? EVENT_COLORS.background : ENTITY_COLORS.background,
+          border: isEvent ? EVENT_COLORS.border : ENTITY_COLORS.border,
+          highlight: {
+            background: isEvent ? EVENT_COLORS.highlightBackground : ENTITY_COLORS.highlightBackground,
+            border: isEvent ? EVENT_COLORS.border : ENTITY_COLORS.border
+          },
+          hover: {
+            background: isEvent ? EVENT_COLORS.hoverBackground : ENTITY_COLORS.hoverBackground,
+            border: isEvent ? EVENT_COLORS.border : ENTITY_COLORS.border
+          }
+        },
+        shape: 'dot',
+        size: 20,
+        borderWidth: 2,
+        physics: true,
+        fixed: false,
+        properties: node.properties || {},
+        type: node.type === 1 ? '事件' : '实体'
+      }
+    })
+  )
 
-  const edges = mockData.edges.map(edge => ({
-    id: edge.id,
-    from: edge.from,
-    to: edge.to,
-    label: edge.label,
-    title: formatTooltip(edge),
-    arrows: 'to',
-    smooth: true,
-    width: 2,
-    properties: edge.properties,
-    color: { color: '#909399', highlight: '#409EFF' }
-  }))
+  // 使用 DataSet 处理边数据
+  const edgesDataset = new DataSet(
+    edges.map((edge: any) => {
+      return {
+        id: edge.id,
+        from: edge.from,
+        to: edge.to,
+        label: edge.value || edge.label || `关系 ${edge.id}`,
+        title: formatTooltip(edge),
+        arrows: 'to',
+        smooth: true,
+        width: 2,
+        properties: edge.properties || {},
+        color: { color: '#909399', highlight: '#409EFF' },
+        physics: true,
+        springLength: 150,
+        length: 150
+      }
+    })
+  )
+  
+  console.log('转换后的节点:', nodesDataset.get())
+  console.log('转换后的关系:', edgesDataset.get())
+  console.groupEnd()
 
-  networkInstance.value = new Network(
+  // 创建知识图谱网络实例
+  const network = new Network(
     graphContainer.value,
-    { nodes, edges },
+    { nodes: nodesDataset, edges: edgesDataset },
     {
-      layout: { improvedLayout: true },
-      physics: {
-        barnesHut: { gravitationalConstant: -3000, centralGravity: 0, springLength: 200 },
-        minVelocity: 0.75
+      layout: {
+        improvedLayout: true
       },
-      interaction: { hover: true, tooltipDelay: 200, multiselect: false }
+      physics: {
+        enabled: true,
+        barnesHut: {
+          gravitationalConstant: -2000,
+          centralGravity: 0.3,
+          springLength: 150,
+          springConstant: 0.01,
+          damping: 0.09,
+          avoidOverlap: 0.5
+        },
+        minVelocity: 0.5,
+        stabilization: {
+          enabled: true,
+          iterations: 1000,
+          fit: true
+        },
+        solver: 'barnesHut'
+      },
+      interaction: {
+        dragNodes: true,
+        hover: true,
+        tooltipDelay: 200,
+        multiselect: false,
+        hideEdgesOnDrag: false,
+        hideNodesOnDrag: false
+      },
+      nodes: {
+        physics: true
+      }
     }
   )
 
-  networkInstance.value.on("click", (params) => {
-    showBackButton.value = false
+  // 点击事件处理
+  network.on("click", async (params) => {
+    showBackButton.value = false;
+
     if (params.nodes.length > 0) {
-      const nodeId = params.nodes[0]
-      const node = mockData.nodes.find(n => n.id === nodeId)
-      if (node) {
-        selectedItem.value = { ...node }
-        updateRelatedRelations(nodeId, 'node')
+      const nodeId = params.nodes[0];
+      // 从当前网络数据中查找节点
+      const nodeData = nodesDataset.get(nodeId);
+      if (nodeData) {
+        previousSelectedItem.value = selectedItem.value;
+        selectedItem.value = { 
+          ...nodeData,
+          type: nodeData.group || '节点',
+          label: nodeData.label || nodeData.value || `节点 ${nodeData.id}`,
+          properties: nodeData.properties || {}
+        };
+        updateRelatedRelations(nodeId, 'node', edgesDataset);
       }
     } else if (params.edges.length > 0) {
-      const edgeId = params.edges[0]
-      const edge = mockData.edges.find(e => e.id === parseInt(edgeId))
-      if (edge) {
-        selectedItem.value = {
-          ...edge,
-          label: edge.label,
-          fromLabel: mockData.nodes.find(n => n.id === edge.from)?.label || edge.from,
-          toLabel: mockData.nodes.find(n => n.id === edge.to)?.label || edge.to
-        }
-        updateRelatedRelations(edgeId, 'edge')
+      const edgeId = params.edges[0];
+      // 从当前网络数据中查找边
+      const edgeData = edgesDataset.get(edgeId);
+      if (edgeData) {
+        previousSelectedItem.value = selectedItem.value;
+        // 获取关联的节点信息
+        const fromNode = nodesDataset.get(edgeData.from);
+        const toNode = nodesDataset.get(edgeData.to);
+        
+        selectedItem.value = { 
+          ...edgeData,
+          label: edgeData.label || edgeData.value || `关系 ${edgeData.id}`,
+          type: '关系',
+          fromLabel: fromNode?.label || edgeData.from,
+          toLabel: toNode?.label || edgeData.to,
+          properties: edgeData.properties || {}
+        };
+        updateRelatedRelations(edgeId, 'edge', edgesDataset);
       }
-    }
-  })
-}
-
-const calculateDayDifference = (date1: string, date2: string) => {
-  const d1 = new Date(date1)
-  const d2 = new Date(date2)
-  const diffTime = d2.getTime() - d1.getTime()
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return "同一天"
-  if (diffDays > 0) return `${diffDays}天后`
-  return `${Math.abs(diffDays)}天前`
-}
-
-const updateRelatedRelations = (id: any, type: 'node' | 'edge') => {
-  if (type === 'node') {
-    const node = mockData.nodes.find(n => n.id === id)
-    if (node?.group === '公告') {
-      const currentDate = node.properties?.发布时间
-      betweenAnnouncementRelations.value = mockData.edges
-        .filter(edge =>
-          (edge.from === id && mockData.nodes.find(n => n.id === edge.to)?.group === '公告') ||
-          (edge.to === id && mockData.nodes.find(n => n.id === edge.from)?.group === '公告')
-        )
-        .flatMap(edge => {
-          const targetNodeId = edge.from === id ? edge.to : edge.from
-          const targetNode = mockData.nodes.find(n => n.id === targetNodeId)
-          const targetDate = targetNode?.properties?.发布时间
-          let relationLabel = edge.label
-          if (edge.label === "时间顺序" && currentDate && targetDate) {
-            relationLabel = `时间顺序 (${calculateDayDifference(currentDate, targetDate)})`
-          }
-          return {
-            ...edge,
-            label: relationLabel,
-            fromLabel: mockData.nodes.find(n => n.id === edge.from)?.label || edge.from,
-            toLabel: mockData.nodes.find(n => n.id === edge.to)?.label || edge.to,
-            timestamp: targetDate || edge.properties?.时间点 || '无日期信息',
-            rawDate: targetDate || edge.properties?.时间点,
-            uniqueKey: `${edge.id}_${targetNodeId}`
-          }
-        })
-        .sort((a, b) => (a.rawDate > b.rawDate ? 1 : -1))
-
-      internalAnnouncementRelations.value = mockData.edges
-        .filter(edge => edge.from === id || edge.to === id)
-        .filter(edge => !betweenAnnouncementRelations.value.some(bRel => bRel.id === edge.id))
-        .map(edge => ({
-          ...edge,
-          fromLabel: mockData.nodes.find(n => n.id === edge.from)?.label || edge.from,
-          toLabel: mockData.nodes.find(n => n.id === edge.to)?.label || edge.to
-        }))
     } else {
-      relatedRelations.value = mockData.edges
-        .filter(edge => edge.from === id || edge.to === id)
-        .map(edge => {
-          const isFrom = edge.from === id
-          const otherNodeId = isFrom ? edge.to : edge.from
-          const otherNode = mockData.nodes.find(n => n.id === otherNodeId)
-          return {
-            ...edge,
-            fromLabel: isFrom ? node?.label || edge.from : otherNode?.label || edge.from,
-            toLabel: isFrom ? otherNode?.label || edge.to : node?.label || edge.to,
-            timestamp: edge.properties?.时间 || otherNode?.properties?.发布时间 || '未知时间',
-            direction: isFrom ? 'out' : 'in'
-          }
-        })
-      betweenAnnouncementRelations.value = []
-      internalAnnouncementRelations.value = []
+      // 点击空白处清空选择
+      selectedItem.value = null;
+      relatedRelations.value = [];
     }
+  });
+
+  networkInstance.value = network;
+};
+
+// 更新相关关系函数
+const updateRelatedRelations = (id: any, type: 'node' | 'edge', edgesDataset: DataSet) => {
+  if (type === 'node') {
+    // 查找与该节点相关的所有边
+    const relatedEdges = edgesDataset.get({
+      filter: (edge) => edge.from === id || edge.to === id
+    });
+    
+    // 获取节点数据
+    const nodesDataset = networkInstance.value?.body.data.nodes;
+    if (!nodesDataset) {
+      relatedRelations.value = [];
+      return;
+    }
+    
+    relatedRelations.value = relatedEdges.map(edge => {
+      const isFrom = edge.from === id;
+      const otherNodeId = isFrom ? edge.to : edge.from;
+      const otherNode = nodesDataset.get(otherNodeId);
+      const currentNode = nodesDataset.get(id);
+      
+      return {
+        ...edge,
+        id: edge.id.toString(),
+        label: edge.label || `关系 ${edge.id}`,
+        fromLabel: isFrom ? currentNode?.label || edge.from : otherNode?.label || edge.from,
+        toLabel: isFrom ? otherNode?.label || edge.to : currentNode?.label || edge.to,
+        direction: isFrom ? 'out' : 'in',
+        properties: edge.properties || {}
+      };
+    });
   } else {
-    betweenAnnouncementRelations.value = []
-    internalAnnouncementRelations.value = []
-  }
-}
-
-const handleRelationClick = (rel: any) => {
-  if (selectedItem.value && selectedItem.value.group) {
-    previousSelectedItem.value = selectedItem.value
-  }
-  if (rel.label === "时间顺序") {
-    const fromNode = mockData.nodes.find(n => n.id === rel.from)
-    const toNode = mockData.nodes.find(n => n.id === rel.to)
-    if (fromNode?.properties?.发布时间 && toNode?.properties?.发布时间) {
-      rel.label = `时间顺序 (${calculateDayDifference(fromNode.properties.发布时间, toNode.properties.发布时间)})`
+    // 如果是关系点击，直接显示该关系
+    const edge = edgesDataset.get(id);
+    if (edge) {
+      // 获取节点数据
+      const nodesDataset = networkInstance.value?.body.data.nodes;
+      if (!nodesDataset) {
+        relatedRelations.value = [];
+        return;
+      }
+      
+      const fromNode = nodesDataset.get(edge.from);
+      const toNode = nodesDataset.get(edge.to);
+      
+      relatedRelations.value = [{
+        ...edge,
+        id: edge.id.toString(),
+        label: edge.label || `关系 ${edge.id}`,
+        fromLabel: fromNode?.label || edge.from,
+        toLabel: toNode?.label || edge.to,
+        properties: edge.properties || {}
+      }];
+    } else {
+      relatedRelations.value = [];
     }
   }
-  selectedItem.value = { ...rel, label: rel.label }
-  showBackButton.value = true
+};
+
+
+// 添加类型标签样式函数
+const getTagType = (item: any) => {
+  const typeMap: Record<string, string> = {
+    '事件': 'danger',
+    '实体': 'success',
+    '关系': 'info'
+  };
+  
+  return typeMap[item.type] || '';
+};
+
+const getRelationTagType = (rel: any) => {
+  if (!rel || !rel.type) return 'info'; // 默认返回 info 类型
+  
+  const type = String(rel.type); // 确保 type 是字符串
+  
+  if (type.includes('因果')) return 'danger';
+  if (type.includes('时序')) return 'warning';
+  return 'info';
 }
 
+const handleRelationClick = (relation: any) => {
+  previousSelectedItem.value = selectedItem.value;
+  selectedItem.value = {
+    ...relation,
+    type: '关系',
+    fromLabel: relation.fromLabel,
+    toLabel: relation.toLabel
+  };
+  showBackButton.value = true;
+  
+  // 更新相关关系
+  const edgesDataset = networkInstance.value?.body.data.edges
+  if (edgesDataset) {
+    updateRelatedRelations(relation.id, 'edge', edgesDataset)
+  }
+};
+
+// 导出处理函数
 const handleExport = () => {
   switch (exportFormat.value) {
-    case 'png': exportAsPNG(); break
-    case 'csv': exportAsCSV(); break
-    case 'json': exportAsJSON(); break
+    case 'png':
+      exportAsPNG()
+      break
+    case 'csv':
+      exportAsCSV()
+      break
+    case 'json':
+      exportAsJSON()
+      break
   }
   showExportDialog.value = false
 }
 
+// 导出为PNG
 const exportAsPNG = () => {
   if (!networkInstance.value) {
     ElMessage.error('无法获取图谱实例')
     return
   }
+  
   try {
+    // 获取canvas元素
     const canvas = graphContainer.value?.querySelector('canvas')
     if (!canvas) {
       ElMessage.error('无法获取画布元素')
       return
     }
+    
+    // 创建临时链接
     const dataUrl = canvas.toDataURL('image/png')
     const link = document.createElement('a')
     link.download = `${exportFileName.value}.png`
     link.href = dataUrl
+    
+    // 触发下载
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    
     ElMessage.success('导出PNG成功')
   } catch (error) {
     ElMessage.error('导出PNG失败')
@@ -398,32 +526,49 @@ const exportAsPNG = () => {
   }
 }
 
-const exportAsCSV = () => {
+// 导出为CSV
+const exportAsCSV = async () => {
   try {
-    let csvContent = "类型,ID,标签,分组,属性\n"
-    mockData.nodes.forEach(node => {
-      const properties = node.properties ? Object.entries(node.properties).map(([k, v]) => `${k}=${v}`).join(';') : ''
-      csvContent += `节点,${node.id},${node.label},${node.group || ''},"${properties}"\n`
-    })
-    mockData.edges.forEach(edge => {
-      const properties = edge.properties ? Object.entries(edge.properties).map(([k, v]) => `${k}=${v}`).join(';') : ''
-      csvContent += `边,${edge.id},${edge.label},,"${properties}",${edge.from},${edge.to}\n`
-    })
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${exportFileName.value}.csv`
-    link.click()
-    ElMessage.success('导出CSV成功')
+    // 获取当前图谱数据
+    const { nodes, edges } = await fetchGraphData()
+    
+    // 添加 UTF-8 BOM 头
+    const BOM = '\uFEFF';
+    let csvContent = BOM + "类型,ID,标签,分组,属性\n";
+    
+    // 导出节点
+    nodes.forEach(node => {
+      const properties = node.properties ? Object.entries(node.properties).map(([k, v]) => `${k}=${v}`).join(';') : '';
+      csvContent += `${node.type === 1 ? '事件' : '实体'},${node.id},${node.value},${node.type === 1 ? '事件' : '实体'},"${properties}"\n`;
+    });
+    
+    // 导出边
+    edges.forEach(edge => {
+      const properties = edge.properties ? Object.entries(edge.properties).map(([k, v]) => `${k}=${v}`).join(';') : '';
+      csvContent += `边,${edge.id},${edge.value},${edge.type},"${properties}",${edge.from},${edge.to}\n`;
+    });
+    
+    // 使用 charset=utf-8 和 BOM
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${exportFileName.value}.csv`;
+    link.click();
+    ElMessage.success('导出CSV成功');
   } catch (error) {
-    ElMessage.error('导出CSV失败')
-    console.error(error)
+    ElMessage.error('导出CSV失败');
+    console.error(error);
   }
-}
+};
 
-const exportAsJSON = () => {
+// 导出为JSON
+const exportAsJSON = async () => {
   try {
-    const dataStr = JSON.stringify(mockData, null, 2)
+    // 获取当前图谱数据
+    const { nodes, edges } = await fetchGraphData()
+    const dataToExport = { nodes, edges }
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2)
     const blob = new Blob([dataStr], { type: 'application/json' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -446,118 +591,32 @@ const formatTooltip = (item: any) => {
   return tooltip
 }
 
-const getNodeColor = (type: string) => {
-  const colors: Record<string, string> = {
-    '公告': '#FF6B6B',
-    '政策': '#4ECDC4',
-    '企业': '#45B7D1',
-    '人物': '#FFA07A',
-    '项目': '#98D8C8',
-    '机构': '#A4B0BE',
-    '法规': '#C5A3FF',
-    'default': '#A4B0BE'
-  }
-  return colors[type] || colors.default
-}
-
-const getTagType = (item: any) => {
-  if (item.group) {
-    const types: Record<string, string> = {
-      '公告': 'danger',
-      '政策': 'success',
-      '企业': 'primary',
-      '人物': 'warning',
-      '项目': 'info',
-      '法规': 'success'
-    }
-    return types[item.group] || ''
-  }
-  return 'danger'
-}
-
-const handleQuestionClick = () => {
-  router.push({ name: 'ask-ai' })
-}
+// const handleQuestionClick = () => { 
+//   router.push({
+//     name: 'ask-ai',
+//     query: { projectId: projectId.value }
+//   })
+// }
 
 const handleBackClick = () => {
   selectedItem.value = previousSelectedItem.value
   showBackButton.value = false
 }
-
-onMounted(() => {
-  initKnowledgeGraph()
-})
 </script>
 
 <style scoped lang="scss">
 .page-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 10px;
   background-color: #f0f2f5;
-  align-items: center;
-}
-
-.toggle-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: white;
-  border: 1px solid #dcdfe6;
-  border-radius: 16px;
-  padding: 6px 12px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.toggle-button:hover {
-  background-color: #d9e2f0;
-}
-
-.main-wrapper {
-  display: flex;
-  align-items: stretch;
-  transition: all 0.3s;
-}
-
-/* 侧边栏 */
-.side-panel {
-  width: 450px;
-  height: 653px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  margin-left: 10px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.splitpanes__divider {
-  background-color: #000 !important;
-  height: 10px;
-  cursor: row-resize;
-}
-
-/* 动画 */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
 }
 
 .kg-card {
   width: 100%;
-  max-width: 900px;
-  height: 630px;
-  background-color: #fff;
+  max-width: 1000px;
+  background-color: #ffffff;
   border-radius: 5px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   padding: 2rem;
@@ -583,10 +642,10 @@ onMounted(() => {
     flex: 3;
     background-color: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
     overflow: hidden;
     border: 1px solid #ebeef5;
-
+    
     .visualization-container {
       width: 100%;
       height: 100%;
@@ -596,35 +655,115 @@ onMounted(() => {
   .kg-details {
     flex: 2;
     min-width: 350px;
-
+    
     .details-card {
       height: 100%;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-      border: none;
-
+      
       :deep(.el-card__body) {
-        flex: 1;
+        padding: 16px;
+        height: calc(100% - 60px);
         overflow-y: auto;
-        padding: 1.25rem;
       }
-
+      
       .card-header {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        padding: 0.75rem 1rem;
-
+        align-items: center;
+        
         .header-left {
           display: flex;
           align-items: center;
           gap: 8px;
-          font-weight: 500;
+          
+          .back-button {
+            margin-right: 8px;
+          }
         }
       }
     }
-
+    
+    .basic-info {
+      margin-bottom: 16px;
+      
+      :deep(.el-descriptions) {
+        width: 100%;
+        
+        .el-descriptions-item__label {
+          width: 120px;
+          font-weight: bold;
+          background-color: #f5f7fa;
+        }
+        
+        .el-descriptions-item__content {
+          padding: 12px;
+        }
+      }
+    }
+    
+    .relations-section {
+      margin-top: 16px;
+      
+      .relations-title {
+        margin: 0 0 16px 0;
+        color: #606266;
+        font-size: 16px;
+      }
+      
+      .relations-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .relation-card {
+        cursor: pointer;
+        transition: all 0.3s;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        :deep(.el-card__body) {
+          padding: 12px;
+        }
+        
+        .relation-header {
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+          gap: 8px;
+          
+          .relation-direction {
+            font-size: 14px;
+            color: #606266;
+          }
+        }
+        
+        .relation-properties {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 8px;
+          
+          .property-item {
+            display: flex;
+            font-size: 13px;
+            
+            .property-key {
+              color: #909399;
+              margin-right: 4px;
+              font-weight: bold;
+            }
+            
+            .property-value {
+              color: #606266;
+              word-break: break-word;
+            }
+          }
+        }
+      }
+    }
+    
     .empty-state {
       height: 100%;
       display: flex;
@@ -633,45 +772,102 @@ onMounted(() => {
       justify-content: center;
       text-align: center;
       color: #909399;
-
+      
       .el-icon {
-        margin-bottom: 1rem;
+        margin-bottom: 16px;
       }
-
+      
       p {
         margin: 0;
-        font-size: 1rem;
+        font-size: 14px;
       }
     }
   }
 }
 
-.button-container {
+.form-section {
+  margin-top: 16px;
+  
+  .form-title {
+    margin: 0 0 16px 0;
+    color: #606266;
+    font-size: 16px;
+  }
+  
+  .property-form {
+    .el-form-item {
+      margin-bottom: 16px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+  }
+}
+
+.question-button-container {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin-top: 20px;
-
-  .el-button {
+  
+  .question-button, .export-button {
     width: 220px;
-    height: 48px;
     font-size: 1rem;
-
+    height: 48px;
+    
     .el-icon {
       margin-right: 8px;
     }
   }
 }
 
+.dialog-form-center {
+  text-align: center;
+}
+.dialog-form-center .el-form-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+.dialog-form-center .el-radio-group,
+.dialog-form-center .el-input {
+  text-align: left; /* 保持内部元素左对齐 */
+}
+
+@media (max-width: 768px) {
+  .question-button-container {
+    flex-direction: column;
+    align-items: center;
+    
+    .question-button, .export-button {
+      width: 100%;
+      margin-bottom: 10px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
 @media (max-width: 1200px) {
+  .kg-card {
+    padding: 1.5rem;
+  }
+  
   .kg-content {
     flex-direction: column;
     height: auto;
-
+    
     .kg-visualization {
       height: 500px;
     }
-
+    
     .kg-details {
       min-width: 100%;
     }
@@ -679,30 +875,21 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .kg-card {
+  .page-container {
     padding: 1rem;
   }
-
+  
+  .kg-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
   .kg-title {
     font-size: 1.5rem;
   }
-
+  
   .kg-content .kg-visualization {
     height: 400px;
-  }
-
-  .button-container {
-    flex-direction: column;
-    align-items: center;
-
-    .el-button {
-      width: 100%;
-      margin-bottom: 10px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
   }
 }
 </style>

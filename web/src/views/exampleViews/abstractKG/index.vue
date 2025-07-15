@@ -19,31 +19,40 @@
               </el-button>
               <el-button type="warning" @click="handleDownload">下载</el-button>
 
-              <el-dropdown :teleported="false">
-                <el-button type="success" :disabled="tableData.length === 0">
-                  <el-icon><Position /></el-icon>
-                  <span>节点操作</span>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      @click="openExtractionMethodDialog"
-                      :disabled="tableData.length === 0 || isNodeExtracted"
-                    >
-                      <el-icon><MagicStick /></el-icon>
-                      <span>节点抽取</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item
-                      @click="showNodeResults"
-                      :disabled="!isNodeExtracted"
-                      divided
-                    >
-                      <el-icon><View /></el-icon>
-                      <span>查看抽取结果</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+<el-dropdown :teleported="false">
+    <el-button type="success">
+      <el-icon><Position /></el-icon>
+      <span>节点操作</span>
+    </el-button>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item
+          @click="openExtractionMethodDialog"
+          :disabled="buttonDisabledStates.nodeExtractBtn"
+        >
+          <el-icon><MagicStick /></el-icon>
+          <span>节点抽取</span>
+        </el-dropdown-item>
+        <el-dropdown-item
+          @click="showNodeResults"
+          :disabled="buttonDisabledStates.viewNodeResultsBtn"
+          divided
+        >
+          <el-icon><View /></el-icon>
+          <span>查看抽取结果</span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
+
+        <el-button 
+                type="info" 
+                @click="exitExtraction"
+                plain
+              >
+                <el-icon><Close /></el-icon>
+                <span>退出抽取</span>
+        </el-button>
 
             </div>
           </div>
@@ -411,73 +420,87 @@
       </div>
     </div>
 
-    <!-- 下半部分：抽取控制面板 -->
-    <div class="bottom-section" :class="{ 'disabled-panel': !isNodeExtracted }">
-      <div class="card">
-        <div class="card-header">
-          <h2>抽取控制面板</h2>
+<!-- 下半部分：抽取控制面板 -->
+  <div class="bottom-section" :class="{ 'disabled-panel': buttonDisabledStates.controlPanelDisabled }">
+  <div class="card">
+    <div class="card-header">
+      <h2>抽取控制面板</h2>
+    </div>
+    <div class="card-content control-panel">
+      <div class="panel-left">
+        <div class="control-group">
+          <div class="control-header">
+            <el-icon><MagicStick /></el-icon>
+            <h3>抽取方法</h3>
+          </div>
+          <el-select 
+            v-model="extractionMethod" 
+            placeholder="请选择抽取方法"
+            class="enhanced-select"
+            :disabled="extractionStatus.hasEdges"
+          >
+            <el-option
+              v-for="item in extractionMethods"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </div>
-        <div class="card-content control-panel">
-          <div class="panel-left">
-            <div class="control-group">
-              <div class="control-header">
-                <el-icon><MagicStick /></el-icon>
-                <h3>抽取方法</h3>
-              </div>
-              <el-select 
-                v-model="extractionMethod" 
-                placeholder="请选择抽取方法"
-                class="enhanced-select"
-              >
-                <el-option
-                  v-for="item in extractionMethods"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </div>
-                
-            <div class="control-group">
-              <div class="control-header">
-                <el-icon><Cpu /></el-icon>
-                <h3>模型基座</h3>
-              </div>
-              <el-select 
-                v-model="modelBase" 
-                placeholder="请选择模型基座"
-                class="enhanced-select"
-              >
-                <el-option
-                  v-for="item in modelBases"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </div>
-          </div>
             
-          <div class="panel-right">
-            <el-button 
-              type="primary" 
-              @click="startExtraction"
-              class="action-button"
-            >
-              <el-icon><VideoPlay /></el-icon>
-              <span>开始抽取</span>
-            </el-button>
-            <el-button 
-              @click="viewResults"
-              class="action-button"
-            >
-              <el-icon><View /></el-icon>
-              <span>查看抽取结果</span>
-            </el-button>
+        <div class="control-group">
+          <div class="control-header">
+            <el-icon><Cpu /></el-icon>
+            <h3>模型基座</h3>
           </div>
+          <el-select 
+            v-model="modelBase" 
+            placeholder="请选择模型基座"
+            class="enhanced-select"
+            :disabled="extractionStatus.hasEdges"
+          >
+            <el-option
+              v-for="item in modelBases"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </div>
       </div>
+        
+      <div class="panel-right">
+        <el-button 
+          type="primary" 
+          @click="startExtraction"
+          class="action-button"
+          :disabled="buttonDisabledStates.startExtractBtn"
+        >
+          <el-icon><VideoPlay /></el-icon>
+          <span>开始抽取</span>
+        </el-button>
+        
+        <el-button 
+          @click="viewRelationResults"
+          class="action-button"
+          :disabled="buttonDisabledStates.viewRelationBtn"
+        >
+          <el-icon><View /></el-icon>
+          <span>查看关系结果</span>
+        </el-button>
+        
+        <el-button 
+          @click="toViewKGPage"
+          class="action-button"
+          :disabled="buttonDisabledStates.viewKgBtn"
+        >
+          <el-icon><View /></el-icon>
+          <span>查看图谱</span>
+        </el-button>
+      </div>
     </div>
+  </div>
+</div>
 
     <!-- 抽取方法选择对话框 -->
   <el-dialog
@@ -630,7 +653,7 @@
         <el-button 
           type="primary"
           @click="relationResultDialogVisible = false"
-          :disabled="buttonsDisabled || relationExtractionLoading"
+          :disabled="buttonsDisabled"
         >
           确认
         </el-button>
@@ -646,7 +669,7 @@ import { ref, computed, onMounted, nextTick , watch, toRefs } from 'vue';
 import { ElMessageBox, ElMessage, ElLoading } from 'element-plus';
 import * as XLSX from 'xlsx';
 import { useRouter } from 'vue-router';
-import { MagicStick, Cpu, VideoPlay, View, Position, CircleCheckFilled, Connection } from '@element-plus/icons-vue';
+import { MagicStick, Cpu, VideoPlay, View, Position, Connection, Close } from '@element-plus/icons-vue';
 import { throttleFn_1 as throttleFn } from '@/common/debounceAndThrottle';
 import userApi from '@/http/user.js';
 import { useRoute } from 'vue-router'
@@ -725,10 +748,13 @@ const relationExtractionLoading = ref(false);
 const relationExtractionProgress = ref(0);
 const relationResultDialogVisible = ref(false);
 const relationResults = ref([]);
-const showKgDialog = ref(false);
-const network = ref(null);
 
-
+const extractionInProgress = ref({
+  nodeExtracting: false,
+  nodeExtracted: false,
+  relationExtracting: false,
+  relationExtracted: false
+});
 
 
 // 导出节点结果
@@ -749,12 +775,84 @@ const exportNodeResults = () => {
 };
 
 
-const showNodeResults = () => {
-  if (nodeResults.value.length > 0) {
+const showNodeResults = async () => {
+  try {
     buttonsDisabled.value = true;
-    nodeResultDialogVisible.value = true; 
-  } else {
-    ElMessage.warning('没有可显示的节点结果');
+    extractionLoading.value = true;
+    nodeResultDialogVisible.value = true;
+    
+    // 调用API获取节点数据
+    const response = await userApi.getNodesByProject({
+      project_id: projectId.value
+    });
+    
+    if (response.data?.nodes?.length > 0) {
+      nodeResults.value = response.data.nodes.map(node => ({
+        id: node.id,
+        type: node.type === 1 ? "事件" : "实体",
+        value: node.value,
+        key: node.key,
+        properties: typeof node.properties === 'string' 
+          ? JSON.parse(node.properties || "{}") 
+          : node.properties || {}
+      }));
+    } else {
+      nodeResults.value = [];
+      ElMessage.warning('没有找到节点抽取结果');
+    }
+  } catch (error) {
+    console.error('获取节点结果失败:', error);
+    ElMessage.error('获取节点结果失败');
+    nodeResults.value = [];
+  } finally {
+    extractionLoading.value = false;
+    buttonsDisabled.value = false;
+  }
+};
+
+const viewRelationResults = async () => {
+  try {
+    buttonsDisabled.value = true;
+    relationExtractionLoading.value = true;
+    relationResultDialogVisible.value = true;
+    
+    // 调用API获取关系数据
+    const response = await userApi.getEdgesByProject({
+      project_id: projectId.value
+    });
+    
+    if (response.data?.edges?.length > 0) {
+      relationResults.value = response.data.edges.map(edge => ({
+        id: edge.id,
+        type: edge.type,
+        from: edge.from,
+        to: edge.to,
+        value: edge.value,
+        eventRel: edge.eventRel,
+        properties: typeof edge.properties === 'string' 
+          ? JSON.parse(edge.properties || "{}") 
+          : edge.properties || {},
+        // 添加节点信息用于显示
+        fromNode: {
+          value: edge.from_node?.value || '未知节点',
+          id: edge.from_node?.id || edge.from
+        },
+        toNode: {
+          value: edge.to_node?.value || '未知节点',
+          id: edge.to_node?.id || edge.to
+        }
+      }));
+    } else {
+      relationResults.value = [];
+      ElMessage.warning('没有找到关系抽取结果');
+    }
+  } catch (error) {
+    console.error('获取关系结果失败:', error);
+    ElMessage.error('获取关系结果失败');
+    relationResults.value = [];
+  } finally {
+    relationExtractionLoading.value = false;
+    buttonsDisabled.value = false;
   }
 };
 
@@ -808,6 +906,40 @@ const fetchOperationData = throttleFn(async () => {
     loadingOperationData.value = false;
   }
 }, 500);
+
+
+const extractionStatus = ref({
+  hasNodes: false,
+  hasEdges: false
+})
+
+// 获取抽取状态
+const fetchExtractionStatus = async () => {
+  try {
+    const response = await userApi.checkExtractionStatus({
+      project_id: projectId.value
+    });
+    
+    if (response.success) {
+      extractionStatus.value = {
+        hasNodes: response.has_nodes,
+        hasEdges: response.has_edges
+      };
+      
+      // 如果已有节点但结果为空，尝试重新获取
+      if (response.has_nodes && nodeResults.value.length === 0) {
+        await showNodeResults();
+      }
+      
+      // 如果已有关系但结果为空，尝试重新获取
+      if (response.has_edges && relationResults.value.length === 0) {
+        await viewRelationResults();
+      }
+    }
+  } catch (error) {
+    console.error('获取抽取状态失败:', error);
+  }
+};
 
 
 const handleDetails = (row: any) => {
@@ -1031,6 +1163,7 @@ const startExtraction = async () => {
     relationExtractionLoading.value = true;
     relationExtractionProgress.value = 0;
     relationResultDialogVisible.value = true;
+    extractionInProgress.value.relationExtracting = true;
     
     // 调用API
     const response = await userApi.extractRelations({
@@ -1061,6 +1194,8 @@ const startExtraction = async () => {
           ? JSON.parse(edge.properties || "{}") 
           : edge.properties || {}
       }));
+
+      extractionInProgress.value.relationExtracted = true;
       
       ElMessage.success(`成功抽取 ${relationResults.value.length} 条关系`);
     } else {
@@ -1073,8 +1208,48 @@ const startExtraction = async () => {
   } finally {
     relationExtractionLoading.value = false;
     relationExtractionProgress.value = 100;
+    extractionInProgress.value.relationExtracting = false;
   }
 };
+
+
+// 计算属性整合禁用状态
+const buttonDisabledStates = computed(() => {
+  // 持久化状态优先 - 已完成关系抽取
+  if (extractionStatus.value.hasEdges) {
+    return {
+      nodeExtractBtn: true,          // 节点抽取按钮禁用
+      viewNodeResultsBtn: false,     // 查看节点结果可用
+      startExtractBtn: true,        // 开始抽取按钮禁用
+      viewRelationBtn: false,       // 查看关系结果可用
+      viewKgBtn: false,             // 查看图谱可用
+      controlPanelDisabled: false   // 控制面板可用
+    };
+  }
+  
+  // 持久化状态 - 仅完成节点抽取
+  if (extractionStatus.value.hasNodes) {
+    return {
+      nodeExtractBtn: true,          // 节点抽取按钮禁用
+      viewNodeResultsBtn: false,     // 查看节点结果可用
+      startExtractBtn: false,        // 开始抽取按钮可用
+      viewRelationBtn: true,         // 查看关系结果禁用
+      viewKgBtn: true,               // 查看图谱禁用
+      controlPanelDisabled: false    // 控制面板可用
+    };
+  }
+  
+  // 实时状态 - 抽取过程中的状态
+  return {
+    nodeExtractBtn: extractionInProgress.value.nodeExtracting || extractionInProgress.value.nodeExtracted,
+    viewNodeResultsBtn: !extractionInProgress.value.nodeExtracted,
+    startExtractBtn: extractionInProgress.value.relationExtracting || 
+                    !extractionInProgress.value.nodeExtracted,
+    viewRelationBtn: !extractionInProgress.value.relationExtracted,
+    viewKgBtn: !extractionInProgress.value.relationExtracted,
+    controlPanelDisabled: !extractionInProgress.value.nodeExtracted
+  };
+});
 
 
 const getRelationTagType = (type) => {
@@ -1110,33 +1285,38 @@ const cancelNodeResults = async () => {
     return;
   }
   
-  await ElMessageBox.confirm('确定要取消当前抽取结果并删除所有节点数据吗？', '确认取消', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  });
-  
-  const loadingInstance = ElLoading.service({
-    lock: true,
-    text: '正在删除节点数据...',
-    background: 'rgba(0, 0, 0, 0.7)'
-  });
-  
-  const response = await userApi.deleteNodesByProject({
-    project_id: projectId.value
-  });
-  
-  loadingInstance.close();
-  
-  if (!response.success) {
-    throw new Error(response.message || '删除节点失败');
+  try {
+    await ElMessageBox.confirm('确定要取消当前抽取结果并删除所有节点数据吗？', '确认取消', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: '正在删除节点数据...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    });
+    
+    // 调用API删除节点数据
+    await userApi.deleteNodesByProject({
+      project_id: projectId.value
+    });
+    
+    loadingInstance.close();
+    
+    nodeResults.value = [];
+    nodeResultDialogVisible.value = false;
+    ElMessage.success('已取消抽取结果并删除节点数据');
+    
+    // 重新检查抽取状态
+    await fetchExtractionStatus();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(`取消节点抽取失败: ${error.message}`);
+      console.error('取消节点抽取错误:', error);
+    }
   }
-  
-  isNodeExtracted.value = false;
-  nodeResults.value = [];
-  nodeResultDialogVisible.value = false;
-  extractionProgress.value = 0;
-  ElMessage.success('已取消抽取结果并删除节点数据');
 };
 
 
@@ -1262,6 +1442,8 @@ const processFinalNodes = (nodes) => {
   console.log('抽取结果:', nodeResults.value.map(node => node.type));
   
   isNodeExtracted.value = true;
+  extractionInProgress.value.nodeExtracted = true;
+  extractionInProgress.value.nodeExtracting = false;
   ElMessage.success('节点抽取成功');
 };
 
@@ -1313,60 +1495,32 @@ const currentPageData = computed(() => {
   return tableData.value.slice(start, end)
 })
 
-// const viewResults = () => {
-//     router.push({
-//     name: 'visual-kg-page', // 使用路由名称跳转
-//   })
-// }
 
-// 查看关系抽取结果
-const viewResults = async () => {
-  try {
-    const loading = ElLoading.service({
-      lock: true,
-      text: '正在获取关系数据...',
-      background: 'rgba(0, 0, 0, 0.7)'
-    });
-    
-    // 获取关系数据
-    const response = await userApi.getEdgesByProject({
-      project_id: projectId.value
-    });
-    
-    if (response.data?.edges?.length > 0) {
-      // 获取节点数据用于显示
-      const nodesResponse = await userApi.getNodesByProject({
-        project_id: projectId.value
-      });
-      
-      const nodesMap = new Map();
-      if (nodesResponse.data?.nodes) {
-        nodesResponse.data.nodes.forEach(node => {
-          nodesMap.set(node.id, node);
-        });
-      }
-      
-      // 处理关系结果
-      relationResults.value = response.data.edges.map(edge => ({
-        ...edge,
-        fromNode: nodesMap.get(edge.from) || { value: '未知节点' },
-        toNode: nodesMap.get(edge.to) || { value: '未知节点' },
-        properties: typeof edge.properties === 'string' 
-          ? JSON.parse(edge.properties || "{}") 
-          : edge.properties || {}
-      }));
-      
-      relationResultDialogVisible.value = true;
-    } else {
-      ElMessage.warning('没有找到关系数据');
-    }
-    
-    loading.close();
-  } catch (error) {
-    ElMessage.error(`获取关系数据失败: ${error.message}`);
-    console.error('获取关系数据错误详情:', error);
+const toViewKGPage = () => {
+  if (nodeResults.value.length === 0 && relationResults.value.length === 0) {
+    ElMessage.warning('没有可可视化的数据，请先完成抽取');
+    console.warn('没有可可视化的数据，请先完成抽取');
+    return;
   }
+
+  // 准备要传递的数据
+  const graphData = {
+    nodes: nodeResults.value,
+    edges: relationResults.value
+  };
+
+  router.push({
+    name: 'visual-kg-page',
+    query: {
+      projectId: projectId.value,
+    }
+  });
+}
+
+const exitExtraction = () => {
+  router.push({ name: 'project-manage' });
 };
+
 
 
 // 取消关系抽取结果
@@ -1390,21 +1544,18 @@ const cancelRelationResults = async () => {
     });
     
     // 调用API删除关系数据
-    const response = await userApi.deleteEdgesByProject({
+    await userApi.deleteEdgesByProject({
       project_id: projectId.value
     });
     
     loadingInstance.close();
     
-    if (!response.success) {
-      throw new Error(response.message || '删除关系失败');
-    }
-    
     relationResults.value = [];
     relationResultDialogVisible.value = false;
-    relationExtractionProgress.value = 0;
     ElMessage.success('已取消抽取结果并删除关系数据');
     
+    // 重新检查抽取状态
+    await fetchExtractionStatus();
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error(`取消关系抽取失败: ${error.message}`);
@@ -1440,6 +1591,7 @@ watch(() => route.path, async () => {
 
 
 onMounted(async () => {
+  await fetchExtractionStatus()
   console.log('Received projectId:', projectId.value)
   if (projectId.value) {
     ElMessage.success(`接收到的项目ID：${projectId.value}`)
@@ -1967,6 +2119,7 @@ watch(projectId, async () => {
   }
 }
 
+// 更新disabled-panel样式
 .disabled-panel {
   position: relative;
   border-radius: 8px;
@@ -1985,8 +2138,9 @@ watch(projectId, async () => {
     z-index: 1;
   }
   
-  &::after {
-    content: "请先完成节点抽取";
+  /* 根据状态显示不同提示 */
+  &[data-has-nodes="true"]::after {
+    content: "节点已抽取，可直接查看结果或进行关系抽取";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -2005,24 +2159,11 @@ watch(projectId, async () => {
     min-width: 200px;
     text-align: center;
     line-height: 1.5;
-    
-    /* 添加图标 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='8' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'%3E%3C/line%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 20px center;
-    padding-left: 50px;
   }
   
-  /* 卡片内容样式 */
-  .card-header, 
-  .card-content {
-    filter: blur(1px);
-    transition: filter 0.3s ease;
-  }
-  
-  /* 禁用所有交互元素 */
-  :deep(*) {
-    pointer-events: none;
+  &[data-has-edges="true"]::after {
+    content: "关系已抽取，可直接查看结果";
+    /* 同上样式，内容不同 */
   }
 }
 // 新增样式
