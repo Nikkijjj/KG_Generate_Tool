@@ -265,6 +265,7 @@ const allApi = {
         });
     },
        // 节点相关接口
+    // 节点相关接口
     getNodesByProject(params) {
         return service({
             url: '/get_nodes_by_project',
@@ -356,25 +357,12 @@ getKgVisualization(params) {
     });
 },
 
-// 删除项目关系数据
-// deleteEdgesByProject(data) {
-//     return service({
-//         url: '/delete_edges_by_project',
-//         method: 'post',
-//         data: data,
-//         headers: {
-//             'Content-Type': 'application/json'
-//         }
-//     });
-// },
-
-// 获取完整的图谱数据（节点+边）
-getFullGraphData(params) {
-    return service({
-        url: '/get_full_graph_data',
-        method: 'get',
-        params
-    });
+checkExtractionStatus: (params) => {
+  return service({
+    url: '/check_extraction_status',
+    method: 'post',
+    data: params  
+  })
 }
 };
 
