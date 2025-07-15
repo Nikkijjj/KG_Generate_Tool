@@ -56,13 +56,17 @@
                   prop="title"
                   width="200"
               />
+
               <el-table-column
-                  label="内容"
-                  show-overflow-tooltip
-                  align="center"
-                  prop="content"
-                  width="600"
-              />
+                label="内容"
+                align="center"
+                prop="content"
+                width="600"
+              >
+                <template #default="{row}">
+                  {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+                </template>
+              </el-table-column>
               <el-table-column
                   label="发布时间"
                   show-overflow-tooltip
@@ -149,6 +153,7 @@
         :rows="4"
       />
     </el-form-item>
+    
     <el-form-item label="发布时间">
       <el-date-picker
         v-model="newNotice.date"
@@ -361,8 +366,11 @@ const handleSearch = async () => {
     });
     console.log('搜索结果:', response.data);
 
-    tableData.value = response.data || [];
-    totalSamples.value = response.data.total || 0;
+    // tableData.value = response.data || [];
+    // totalSamples.value = response.data.total || 0;
+
+    tableData.value = response.data.data?.data || response.data.data || [];
+    totalSamples.value = response.data.data?.total || response.data.total || 0;
   } catch (error) {
     ElMessage.error('搜索失败: ' + error.message);
   } finally {
@@ -589,107 +597,6 @@ const handleFileUpload = async () => {
   }
 };
 
-
-// 辅助函数用于读取文件内容
-const readFileContent = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      resolve(event.target?.result as string);
-    };
-    reader.onerror = (error) => {
-      reject(error);
-    };
-    reader.readAsText(file, uploadForm.value.encoding);
-  });
-};
-
-
-// 辅助函数用于解析文件内容
-const parseFileContent = (content: string): any[] => {
-  if (uploadForm.value.fileType === 'csv') {
-    return parseCSV(content);
-  } else {
-    return parseTXT(content);
-  }
-};
-
-
-// 辅助函数用于解析CSV内容
-const parseCSV = (content: string): any[] => {
-  const lines = content.split('\n');
-  const headers = lines[0].split(uploadForm.value.delimiter);
-  const result = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    
-    const values = lines[i].split(uploadForm.value.delimiter);
-    const entry: any = {};
-    
-    for (let j = 0; j < headers.length; j++) {
-      entry[headers[j].trim()] = values[j] ? values[j].trim() : '';
-    }
-    
-    // Add required fields if not present
-    if (!entry.id) entry.id = `auto_${Date.now()}_${i}`;
-    if (!entry.publishTime) entry.publishTime = new Date().toISOString().split('T')[0];
-    
-    result.push(entry);
-  }
-  
-  return result;
-};
-
-
-// 辅助函数用于解析TXT内容
-const parseTXT = (content: string): any[] => {
-  // Split into entries (if there are multiple announcements in one file)
-  const entries = content.split('\n\n').filter(e => e.trim());
-  
-  return entries.map((entry, index) => {
-    // Initialize default values
-    const result: any = {
-      id: `auto_${Date.now()}_${index}`,
-      title: '无标题公告',
-      content: '',
-      date: new Date().toISOString().split('T')[0],
-      stock_num: '未知股票代码'
-    };
-
-    // Split the entry into lines and process each line
-    const lines = entry.split('\n').filter(line => line.trim());
-    
-    lines.forEach(line => {
-      // Check for each field pattern
-      if (line.startsWith('公告标题：')) {
-        result.title = line.replace('公告标题：', '').trim();
-      } else if (line.startsWith('公告内容：')) {
-        result.content = line.replace('公告内容：', '').trim();
-      } else if (line.startsWith('发布时间：')) {
-        result.date = line.replace('发布时间：', '').trim();
-      } else if (line.startsWith('股票代码：')) {
-        result.stock_num = line.replace('股票代码：', '').trim();
-      } 
-      // Handle multi-line content (if content spans multiple lines)
-      else if (result.content && !line.includes('：')) {
-        result.content += '\n' + line.trim();
-      }
-    });
-
-    return result;
-  });
-};
-
-
-try {
-  // 这里调用后端API
-  // const res = await importDataApi(params);
-  ElMessage.success('导入请求已提交');
-  importDialogVisible.value = false;
-} catch (error) {
-  ElMessage.error('导入失败');
-}
 
 
 // 表头单元格样式
