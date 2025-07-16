@@ -155,7 +155,7 @@ export default defineComponent({
                     :src="dataContainer.img.img_1"
                     fit="cover"
                 />
-                <div class="name">知识图谱生成工具</div>
+                <div class="name">金融事件图谱抽取平台</div>
             </div>
             <div class="right">
                 <Navbar
@@ -269,8 +269,8 @@ export default defineComponent({
                 }
             }
             > .logo {
-                width: 45px;
-                height: 45px;
+                width: 40px;
+                height: 40px;
                 border-radius: 5px;
                 cursor: pointer;
                 margin-right: 10px;
